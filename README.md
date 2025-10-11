@@ -1,3 +1,7 @@
+setelah clone flutter pub
+habis itu flutter run
+
+
 
 Penjelasan Folder 
 lib/
