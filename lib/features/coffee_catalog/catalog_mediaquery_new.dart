@@ -444,10 +444,9 @@ class _AnimatedCoffeeCardState extends State<_AnimatedCoffeeCard> {
                 Expanded(
                   flex: 2,
                   child: Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           widget.product.name,
@@ -456,7 +455,7 @@ class _AnimatedCoffeeCardState extends State<_AnimatedCoffeeCard> {
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 4),
                         Text(
                           widget.product.description,
                           maxLines: 1,
