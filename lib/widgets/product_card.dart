@@ -54,7 +54,7 @@ class ProductCard extends StatelessWidget {
                   height: isCompact ? 110 : 130,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: AppColors.maskGreen.withOpacity(0.08),
+                    color: AppColors.maskGreen.withValues(alpha: 0.08),
                   ),
                   child: Center(
                     child:
@@ -174,7 +174,9 @@ class ProductCard extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.featherGreen.withOpacity(0.15),
+                            color: AppColors.featherGreen.withValues(
+                              alpha: 0.15,
+                            ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(

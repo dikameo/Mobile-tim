@@ -40,7 +40,6 @@ class _ProductCardExplicitState extends State<ProductCardExplicit>
     with TickerProviderStateMixin {
   late AnimationController _popController;
   late Animation<double> _popAnimation;
-  bool _isPressed = false;
 
   @override
   void initState() {
@@ -63,18 +62,15 @@ class _ProductCardExplicitState extends State<ProductCardExplicit>
   }
 
   void _onTapDown() {
-    setState(() => _isPressed = true);
     _popController.forward();
   }
 
   void _onTapUp() {
-    setState(() => _isPressed = false);
     _popController.reverse();
     widget.onTap?.call();
   }
 
   void _onTapCancel() {
-    setState(() => _isPressed = false);
     _popController.reverse();
   }
 
@@ -117,8 +113,8 @@ class _ProductCardExplicitState extends State<ProductCardExplicit>
                           height: isCompact ? 110 : 130,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: AppColors.maskGreen.withOpacity(
-                              sliderOpacity,
+                            color: AppColors.maskGreen.withValues(
+                              alpha: sliderOpacity,
                             ),
                           ),
                           child: Transform.scale(
@@ -250,8 +246,8 @@ class _ProductCardExplicitState extends State<ProductCardExplicit>
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.featherGreen.withOpacity(
-                                      0.15,
+                                    color: AppColors.featherGreen.withValues(
+                                      alpha: 0.15,
                                     ),
                                     borderRadius: BorderRadius.circular(4),
                                   ),

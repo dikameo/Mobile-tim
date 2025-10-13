@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '/core/utils/screen.dart';
-import '/widgets/product_card_implicit.dart';
 import 'product_detail.dart';
 
 // Model data kopi
@@ -126,20 +124,6 @@ class _CoffeeCatalogWithMediaQueryState
     return 4; // Tablet Landscape / Desktop
   }
 
-  /// Menghitung ukuran font yang adaptif
-  double _getAdaptiveFontSize(double width) {
-    if (width < 600) return 13.0;
-    if (width < 900) return 14.0;
-    return 15.0;
-  }
-
-  /// Menghitung ukuran icon yang adaptif
-  double _getAdaptiveIconSize(double width) {
-    if (width < 600) return 38.0;
-    if (width < 900) return 42.0;
-    return 48.0;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -178,7 +162,7 @@ class _CoffeeCatalogWithMediaQueryState
   Widget _buildControlPanel(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      color: Theme.of(context).cardTheme.color?.withOpacity(0.5),
+      color: Theme.of(context).cardTheme.color?.withValues(alpha: 0.5),
       child: Column(
         children: [
           _buildSliderControl(
@@ -264,13 +248,15 @@ class _CoffeeCatalogWithMediaQueryState
     if (width >= 900) breakpointName = 'Desktop';
 
     return Container(
-      color: Theme.of(context).cardTheme.color?.withOpacity(0.5),
+      color: Theme.of(context).cardTheme.color?.withValues(alpha: 0.5),
       padding: const EdgeInsets.all(12.0),
       child: Center(
         child: Text(
           'MediaQuery • $breakpointName (${width.toInt()}px) • $crossAxisCount Kolom • AnimatedContainer',
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.7),
             fontSize: 12,
           ),
         ),
@@ -384,122 +370,124 @@ class _AnimatedCoffeeCardState extends State<_AnimatedCoffeeCard> {
         widget.onTap?.call();
       },
       onTapCancel: () => setState(() => _isPressed = false),
-      child: AnimatedContainer(
-        duration: animationDuration,
-        curve: Curves.easeInOut,
-        transform: Matrix4.identity()..scale(_isPressed ? 0.95 : 1.0),
+      child: Transform.scale(
+        scale: _isPressed ? 0.95 : 1.0,
         child: AnimatedContainer(
           duration: animationDuration,
           curve: Curves.easeInOut,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(_isPressed ? 0.2 : 0.1),
-                blurRadius: _isPressed ? 8 : 4,
-                offset: Offset(0, _isPressed ? 4 : 2),
-              ),
-            ],
-          ),
-          child: Card(
-            elevation: 0,
-            margin: const EdgeInsets.all(4),
-            shape: RoundedRectangleBorder(
+          child: AnimatedContainer(
+            duration: animationDuration,
+            curve: Curves.easeInOut,
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: _isPressed ? 0.2 : 0.1),
+                  blurRadius: _isPressed ? 8 : 4,
+                  offset: Offset(0, _isPressed ? 4 : 2),
+                ),
+              ],
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Icon Section dengan animasi background
-                Expanded(
-                  flex: 3,
-                  child: AnimatedContainer(
-                    duration: animationDuration,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: _isPressed
-                          ? Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.2)
-                          : Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.1),
-                    ),
-                    child: Center(
-                      child: AnimatedScale(
-                        duration: animationDuration,
-                        scale: _isPressed ? 1.1 : 1.0,
-                        child: Icon(
-                          widget.product.icon,
-                          size: 48,
-                          color: Theme.of(context).colorScheme.primary,
+            child: Card(
+              elevation: 0,
+              margin: const EdgeInsets.all(4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Icon Section dengan animasi background
+                  Expanded(
+                    flex: 3,
+                    child: AnimatedContainer(
+                      duration: animationDuration,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: _isPressed
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.2)
+                            : Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.1),
+                      ),
+                      child: Center(
+                        child: AnimatedScale(
+                          duration: animationDuration,
+                          scale: _isPressed ? 1.1 : 1.0,
+                          child: Icon(
+                            widget.product.icon,
+                            size: 48,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                // Content Section
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.product.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.product.description,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.grey[600]),
-                        ),
-                        const Spacer(),
-                        Row(
-                          children: [
-                            Text(
-                              widget.product.price,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                            ),
-                            const Spacer(),
-                            if (widget.product.rating != null)
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    size: 12,
-                                    color: Colors.amber,
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    widget.product.rating!.toStringAsFixed(1),
-                                    style: const TextStyle(fontSize: 10),
-                                  ),
-                                ],
+                  // Content Section
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.product.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.product.description,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: Colors.grey[600]),
+                          ),
+                          const Spacer(),
+                          Row(
+                            children: [
+                              Text(
+                                widget.product.price,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
                               ),
-                          ],
-                        ),
-                      ],
+                              const Spacer(),
+                              if (widget.product.rating != null)
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      size: 12,
+                                      color: Colors.amber,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      widget.product.rating!.toStringAsFixed(1),
+                                      style: const TextStyle(fontSize: 10),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
