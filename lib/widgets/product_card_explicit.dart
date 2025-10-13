@@ -46,8 +46,8 @@ class _ProductCardExplicitState extends State<ProductCardExplicit>
   bool _isPlaying = false;
   bool _isRepeating = false;
 
-  Duration _currentDuration = const Duration(milliseconds: 800);
-  Curve _currentCurve = Curves.bounceInOut;
+  final Duration _currentDuration = const Duration(milliseconds: 800);
+  final Curve _currentCurve = Curves.bounceInOut;
 
   @override
   void initState() {
@@ -78,8 +78,8 @@ class _ProductCardExplicitState extends State<ProductCardExplicit>
     ).animate(CurvedAnimation(parent: _controller, curve: _currentCurve));
 
     _colorAnimation = ColorTween(
-      begin: AppColors.maskGreen.withOpacity(0.08),
-      end: AppColors.maskGreen.withOpacity(0.15),
+      begin: AppColors.maskGreen.withValues(alpha: 0.08),
+      end: AppColors.maskGreen.withValues(alpha: 0.15),
     ).animate(CurvedAnimation(parent: _controller, curve: _currentCurve));
   }
 
@@ -313,8 +313,8 @@ class _ProductCardExplicitState extends State<ProductCardExplicit>
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.featherGreen.withOpacity(
-                                      0.15,
+                                    color: AppColors.featherGreen.withValues(
+                                      alpha: 0.15,
                                     ),
                                     borderRadius: BorderRadius.circular(4),
                                   ),

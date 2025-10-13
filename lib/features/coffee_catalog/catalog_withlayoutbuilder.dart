@@ -134,6 +134,13 @@ class _CoffeeCatalogWithLayoutBuilderState
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.swap_horiz),
+            onPressed: () {
+              Get.toNamed('/catalog-mediaquery');
+            },
+            tooltip: 'Ganti ke AnimatedContainer',
+          ),
+          IconButton(
             icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
             onPressed: () =>
                 Get.changeThemeMode(isDark ? ThemeMode.light : ThemeMode.dark),
@@ -155,7 +162,7 @@ class _CoffeeCatalogWithLayoutBuilderState
   Widget _buildControlPanel(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      color: Theme.of(context).cardTheme.color?.withOpacity(0.5),
+      color: Theme.of(context).cardTheme.color?.withValues(alpha: 0.5),
       child: Column(
         children: [
           _buildSliderControl(
@@ -233,13 +240,15 @@ class _CoffeeCatalogWithLayoutBuilderState
         if (width >= 900) breakpointName = 'Desktop';
 
         return Container(
-          color: Theme.of(context).cardTheme.color?.withOpacity(0.5),
+          color: Theme.of(context).cardTheme.color?.withValues(alpha: 0.5),
           padding: const EdgeInsets.all(12.0),
           child: Center(
             child: Text(
               'LayoutBuilder • $breakpointName (${width.toInt()}px) • $crossAxisCount Kolom • AnimationController',
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -295,7 +304,7 @@ class _CoffeeCatalogWithLayoutBuilderState
                 'Success',
                 'Disukai: ${product.name}',
                 snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.green.withOpacity(0.8),
+                backgroundColor: Colors.green.withValues(alpha: 0.8),
                 colorText: Colors.white,
                 borderRadius: 8,
                 margin: const EdgeInsets.all(16),
@@ -370,8 +379,8 @@ class _AnimationControllerCoffeeCardState
 
   void _setupThemeAnimations() {
     _colorAnimation = ColorTween(
-      begin: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-      end: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+      begin: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+      end: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
@@ -412,8 +421,8 @@ class _AnimationControllerCoffeeCardState
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(
-                        0.1 + (_controller.value * 0.1),
+                      color: Colors.black.withValues(
+                        alpha: 0.1 + (_controller.value * 0.1),
                       ),
                       blurRadius: 4 + (_controller.value * 8),
                       offset: Offset(0, 2 + (_controller.value * 4)),

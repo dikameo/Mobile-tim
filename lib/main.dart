@@ -17,8 +17,10 @@ class MyApp extends StatelessWidget {
       title: 'KopiKu',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
+      darkTheme: appDarkTheme,
+      themeMode: ThemeMode.system, // Follow system theme by default
       getPages: AppPages.pages,
-      initialRoute: AppRoutes.catalogWithMediaquery, // 🔥 Langsung ke katalog
+      initialRoute: AppRoutes.catalogWithMediaquery,
     );
   }
 }
