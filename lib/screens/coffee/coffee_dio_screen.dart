@@ -39,19 +39,75 @@ class _CoffeeDioScreenState extends State<CoffeeDioScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : coffees.isEmpty
                 ? const Center(child: Text("Tidak ada data atau gagal memuat."))
-                : ListView.builder(
+                : GridView.builder(
+                    padding: const EdgeInsets.all(10),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.7,
+                        ),
                     itemCount: coffees.length,
                     itemBuilder: (context, index) {
                       final c = coffees[index];
+                      final imageUrl = c['image'] ?? c['image_url'] ?? '';
+
                       return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: ListTile(
-                          title: Text(c['name'] ?? 'Tanpa Nama'),
-                          subtitle: Text(c['description'] ?? ''),
-                          trailing: Text("Rp${c['price'] ?? '-'}"),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: imageUrl.isNotEmpty
+                                  ? ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(12),
+                                      ),
+                                      child: Image.network(
+                                        imageUrl,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(
+                                                  Icons.broken_image,
+                                                  size: 60,
+                                                  color: Colors.grey,
+                                                ),
+                                      ),
+                                    )
+                                  : const Center(
+                                      child: Icon(
+                                        Icons.image_not_supported,
+                                        size: 60,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    c['name'] ?? 'Tanpa Nama',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Rp${c['price'] ?? '-'}",
+                                    style: const TextStyle(color: Colors.brown),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },
