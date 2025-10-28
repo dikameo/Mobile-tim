@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../models/product.dart';
+import '../../providers/api_provider.dart';
+import '../../services/product_service.dart';
 import '../../widgets/product_card.dart';
 import 'product_detail_screen.dart';
 
@@ -13,14 +16,35 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   final TextEditingController _searchController = TextEditingController();
-  late List<Product> _allProducts;
-  late List<Product> _visibleProducts;
+  List<Product> _allProducts = [];
+  List<Product> _visibleProducts = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _allProducts = Product.getDummyProducts();
-    _visibleProducts = _allProducts;
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final apiProvider = Provider.of<APIProvider>(context, listen: false);
+      final products = await ProductService.getProducts(apiProvider);
+      setState(() {
+        _allProducts = products;
+        _visibleProducts = products;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading products: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _onSearchChanged(String value) {
@@ -36,6 +60,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final apiProvider = Provider.of<APIProvider>(context);
+    
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundOffWhite,
       appBar: AppBar(
@@ -48,6 +80,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
             prefixIcon: Icon(Icons.search),
           ),
         ),
+        actions: [
+          Row(
+            children: [
+              Text(
+                apiProvider.lastRuntime,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(width: 16),
+            ],
+          ),
+        ],
       ),
       body: _visibleProducts.isEmpty
           ? Center(

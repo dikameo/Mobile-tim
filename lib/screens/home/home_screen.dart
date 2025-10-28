@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../models/product.dart';
+import '../../providers/api_provider.dart';
+import '../../services/product_service.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/hero_banner.dart';
@@ -22,14 +25,35 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
   String _selectedCategory = 'All';
-  late List<Product> _products;
-  late List<Product> _filteredProducts;
+  List<Product> _products = [];
+  List<Product> _filteredProducts = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _products = Product.getDummyProducts();
-    _filteredProducts = _products;
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final apiProvider = Provider.of<APIProvider>(context, listen: false);
+      final products = await ProductService.getProducts(apiProvider);
+      setState(() {
+        _products = products;
+        _filteredProducts = products;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading products: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _filterProducts(String category) {
@@ -53,9 +77,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final apiProvider = Provider.of<APIProvider>(context);
+    
     // Bottom nav screens
     final screens = [
-      _buildHomeContent(),
+      _buildHomeContent(apiProvider),
       const ExploreScreen(),
       const WishlistScreen(),
       const TransactionHistoryScreen(),
@@ -64,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundOffWhite,
-      appBar: _currentNavIndex == 0 ? const CustomAppBar() : null,
+      appBar: _currentNavIndex == 0 ? CustomAppBar() : null,
       body: screens[_currentNavIndex],
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentNavIndex,
@@ -73,15 +99,46 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHomeContent() {
+  Widget _buildHomeContent(APIProvider apiProvider) {
     final categories = Product.getCategories();
-    final featuredProducts = _products.take(4).toList();
+    final featuredProducts = _filteredProducts.take(4).toList();
+
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 16),
+          // API Toggle and Runtime Info
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Text('Use Dio: '),
+                    Switch(
+                      value: apiProvider.useDio,
+                      onChanged: (value) {
+                        apiProvider.toggleAPIImplementation();
+                        _loadProducts(); // Reload products with new API implementation
+                      },
+                    ),
+                  ],
+                ),
+                Text(
+                  apiProvider.lastRuntime,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
           // Hero Banner
           const HeroBanner(),
           const SizedBox(height: 24),

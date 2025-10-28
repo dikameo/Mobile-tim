@@ -6,6 +6,7 @@ import 'providers/cart_provider.dart';
 import 'providers/wishlist_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/api_provider.dart';
 
 void main() {
   runApp(const RoastMasterApp());
@@ -22,6 +23,7 @@ class RoastMasterApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => WishlistProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => APIProvider()),
       ],
       child: MaterialApp(
         title: 'RoastMaster ID',

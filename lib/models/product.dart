@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Product {
   final String id;
   final String name;
@@ -25,7 +27,41 @@ class Product {
     List<String>? imageUrls,
   }) : imageUrls = imageUrls ?? [imageUrl];
 
-  // Dummy data factory
+  // Convert from JSON
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
+      price: (json['price'] is int) ? (json['price'] as int).toDouble() : (json['price'] is double) ? json['price'] as double : 0.0,
+      capacity: json['capacity'] ?? '',
+      rating: (json['rating'] is int) ? (json['rating'] as int).toDouble() : (json['rating'] is double) ? json['rating'] as double : 0.0,
+      reviewCount: json['reviewCount'] ?? 0,
+      category: json['category'] ?? '',
+      specifications: json['specifications'] != null ? Map<String, dynamic>.from(json['specifications']) : <String, dynamic>{},
+      description: json['description'] ?? '',
+      imageUrls: json['imageUrls'] != null ? List<String>.from(json['imageUrls']) : null,
+    );
+  }
+
+  // Convert to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'imageUrl': imageUrl,
+      'price': price,
+      'capacity': capacity,
+      'rating': rating,
+      'reviewCount': reviewCount,
+      'category': category,
+      'specifications': specifications,
+      'description': description,
+      'imageUrls': imageUrls,
+    };
+  }
+
+  // Dummy data factory (for fallback or testing)
   static List<Product> getDummyProducts() {
     return [
       Product(
