@@ -18,7 +18,7 @@ app.use(express.json());
 const products = [
   {
     id: '1',
-    name: 'ProRoast 1000 Home Edition',
+    name: 'KOPI GUNDUL',
     imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800',
     price: 15000000,
     capacity: '1kg',
