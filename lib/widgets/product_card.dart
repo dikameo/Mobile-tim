@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../models/product.dart';
 import '../config/theme.dart';
-import '../providers/wishlist_provider.dart';
+import '../controllers/wishlist_controller.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -20,7 +20,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wishlistProvider = Provider.of<WishlistProvider>(context);
+    final wishlistProvider = Get.find<WishlistController>();
     final isWishlisted = wishlistProvider.isInWishlist(product.id);
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
@@ -49,7 +49,7 @@ class ProductCard extends StatelessWidget {
     BuildContext context,
     bool isWishlisted,
     NumberFormat currencyFormatter,
-    WishlistProvider wishlistProvider,
+    WishlistController wishlistProvider,
   ) {
     return GestureDetector(
       onTap: onTap,
@@ -193,7 +193,7 @@ class ProductCard extends StatelessWidget {
     BuildContext context,
     bool isWishlisted,
     NumberFormat currencyFormatter,
-    WishlistProvider wishlistProvider,
+    WishlistController wishlistProvider,
   ) {
     return GestureDetector(
       onTap: onTap,

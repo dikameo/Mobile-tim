@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import '../../config/theme.dart';
 import '../../models/product.dart';
-import '../../providers/api_provider.dart';
+import '../../controllers/api_controller.dart';
 import '../../services/product_service.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/bottom_nav_bar.dart';
@@ -41,8 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final apiProvider = Provider.of<APIProvider>(context, listen: false);
-      final products = await ProductService.getProducts(apiProvider);
+      final apiController = Get.find<APIController>();
+      final products = await ProductService.getProducts(apiController);
       setState(() {
         _products = products;
         _filteredProducts = products;
@@ -77,11 +77,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final apiProvider = Provider.of<APIProvider>(context);
+    final apiController = Get.find<APIController>();
     
     // Bottom nav screens
     final screens = [
-      _buildHomeContent(apiProvider),
+      _buildHomeContent(apiController),
       const ExploreScreen(),
       const WishlistScreen(),
       const TransactionHistoryScreen(),
@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHomeContent(APIProvider apiProvider) {
+  Widget _buildHomeContent(APIController apiController) {
     final categories = Product.getCategories();
     final featuredProducts = _filteredProducts.take(4).toList();
 
@@ -123,16 +123,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const Text('Use Dio: '),
                     Switch(
-                      value: apiProvider.useDio,
+                      value: apiController.useDio,
                       onChanged: (value) {
-                        apiProvider.toggleAPIImplementation();
+                        apiController.toggleAPIImplementation();
                         _loadProducts(); // Reload products with new API implementation
                       },
                     ),
                   ],
                 ),
                 Text(
-                  apiProvider.lastRuntime,
+                  apiController.lastRuntime,
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],

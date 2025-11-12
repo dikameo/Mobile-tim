@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import '../../config/theme.dart';
-import '../../providers/auth_provider.dart';
+import '../../controllers/auth_controller.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -36,7 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() => _isLoading = true);
 
       try {
-        await Provider.of<AuthProvider>(context, listen: false).register(
+        await Get.find<AuthController>().register(
           _nameController.text,
           _emailController.text,
           _phoneController.text,
@@ -44,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
 
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          Get.offAllNamed('/home');
         }
       } catch (e) {
         if (mounted) {

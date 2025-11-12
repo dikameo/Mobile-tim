@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import '../../config/theme.dart';
-import '../../providers/auth_provider.dart';
+import '../../controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,13 +29,13 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = true);
 
       try {
-        await Provider.of<AuthProvider>(
-          context,
-          listen: false,
-        ).login(_emailController.text, _passwordController.text);
+        await Get.find<AuthController>().login(
+          _emailController.text, 
+          _passwordController.text
+        );
 
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          Get.offAllNamed('/home');
         }
       } catch (e) {
         if (mounted) {
@@ -55,10 +55,10 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await Provider.of<AuthProvider>(context, listen: false).loginWithGoogle();
+      await Get.find<AuthController>().loginWithGoogle();
 
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        Get.offAllNamed('/home');
       }
     } catch (e) {
       if (mounted) {

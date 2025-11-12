@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import '../../config/theme.dart';
 import '../../models/product.dart';
-import '../../providers/api_provider.dart';
+import '../../controllers/api_controller.dart';
 import '../../services/product_service.dart';
 import '../../widgets/product_card.dart';
 import 'product_detail_screen.dart';
@@ -32,8 +32,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
     });
 
     try {
-      final apiProvider = Provider.of<APIProvider>(context, listen: false);
-      final products = await ProductService.getProducts(apiProvider);
+      final apiController = Get.find<APIController>();
+      final products = await ProductService.getProducts(apiController);
       setState(() {
         _allProducts = products;
         _visibleProducts = products;
@@ -60,7 +60,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final apiProvider = Provider.of<APIProvider>(context);
+    final apiController = Get.find<APIController>();
     
     if (_isLoading) {
       return const Center(
@@ -84,7 +84,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           Row(
             children: [
               Text(
-                apiProvider.lastRuntime,
+                apiController.lastRuntime,
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
               const SizedBox(width: 16),
@@ -124,13 +124,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 return ProductCard(
                   product: product,
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ProductDetailScreen(product: product),
-                      ),
-                    );
+                    Get.to(() => ProductDetailScreen(product: product));
                   },
                 );
               },

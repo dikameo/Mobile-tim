@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../config/theme.dart';
 import '../../models/product.dart';
-import '../../providers/cart_provider.dart';
-import '../../providers/wishlist_provider.dart';
+import '../../controllers/cart_controller.dart';
+import '../../controllers/wishlist_controller.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -25,8 +25,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final wishlistProvider = Provider.of<WishlistProvider>(context);
-    final cartProvider = Provider.of<CartProvider>(context);
+    final wishlistProvider = Get.find<WishlistController>();
+    final cartProvider = Get.find<CartController>();
     final isWishlisted = wishlistProvider.isInWishlist(widget.product.id);
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
@@ -440,7 +440,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               label: 'VIEW CART',
                               textColor: AppTheme.secondaryOrange,
                               onPressed: () {
-                                Navigator.pushNamed(context, '/cart');
+                                Get.toNamed('/cart');
                               },
                             ),
                           ),
@@ -458,7 +458,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           widget.product,
                           quantity: _quantity,
                         );
-                        Navigator.pushNamed(context, '/cart');
+                        Get.toNamed('/cart');
                       },
                       child: const Text('Buy Now'),
                     ),

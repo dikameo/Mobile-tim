@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import '../models/order.dart';
 
-class OrderProvider with ChangeNotifier {
+class OrderController extends GetxController {
   List<Order> _orders = Order.getDummyOrders();
 
   List<Order> get orders => _orders;
@@ -20,7 +20,7 @@ class OrderProvider with ChangeNotifier {
 
   void addOrder(Order order) {
     _orders.insert(0, order);
-    notifyListeners();
+    update();
   }
 
   void updateOrderStatus(String orderId, OrderStatus newStatus) {
@@ -28,7 +28,7 @@ class OrderProvider with ChangeNotifier {
     if (index >= 0) {
       // Note: Since Order is immutable, in a real app you'd create a new Order
       // For this demo, we'll just update the list
-      notifyListeners();
+      update();
     }
   }
 

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../config/theme.dart';
-import '../../providers/cart_provider.dart';
+import '../../controllers/cart_controller.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final cartProvider = Provider.of<CartProvider>(context);
+    final cartProvider = Get.find<CartController>();
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -26,30 +26,25 @@ class CartScreen extends StatelessWidget {
           if (cartProvider.items.isNotEmpty)
             TextButton(
               onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Clear Cart'),
-                    content: const Text(
-                      'Are you sure you want to remove all items from cart?',
+                Get.defaultDialog(
+                  title: 'Clear Cart',
+                  middleText: 'Are you sure you want to remove all items from cart?',
+                  actions: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: const Text('Cancel'),
                     ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
+                    TextButton(
+                      onPressed: () {
+                        cartProvider.clearCart();
+                        Get.back();
+                      },
+                      child: const Text(
+                        'Clear',
+                        style: TextStyle(color: Colors.red),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          cartProvider.clearCart();
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          'Clear',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               },
               child: const Text('Clear All'),
@@ -129,13 +124,10 @@ class CartScreen extends StatelessWidget {
                         direction: DismissDirection.endToStart,
                         onDismissed: (direction) {
                           cartProvider.removeFromCart(item.product.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${item.product.name} removed from cart',
-                              ),
-                              duration: const Duration(seconds: 2),
-                            ),
+                          Get.snackbar(
+                            'Success',
+                            '${item.product.name} removed from cart',
+                            snackPosition: SnackPosition.BOTTOM,
                           );
                         },
                         background: Container(
@@ -374,7 +366,7 @@ class CartScreen extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: cartProvider.selectedItemCount > 0
                               ? () {
-                                  Navigator.pushNamed(context, '/checkout');
+                                  Get.toNamed('/checkout');
                                 }
                               : null,
                           child: Text(

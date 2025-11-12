@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import '../models/product.dart';
 
-class WishlistProvider with ChangeNotifier {
+class WishlistController extends GetxController {
   final List<Product> _items = [];
 
   List<Product> get items => _items;
@@ -18,16 +18,16 @@ class WishlistProvider with ChangeNotifier {
     } else {
       _items.add(product);
     }
-    notifyListeners();
+    update();
   }
 
   void removeFromWishlist(String productId) {
     _items.removeWhere((product) => product.id == productId);
-    notifyListeners();
+    update();
   }
 
   void clearWishlist() {
     _items.clear();
-    notifyListeners();
+    update();
   }
 }

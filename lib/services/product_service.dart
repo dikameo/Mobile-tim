@@ -3,45 +3,45 @@ import 'dart:io';
 import 'package:dio/dio.dart' as dio_pkg;
 import 'package:http/http.dart' as http;
 import '../models/product.dart';
-import '../providers/api_provider.dart';
+import '../controllers/api_controller.dart';
 
 class ProductService {
   static const String _baseUrl = 'http://localhost:5000';
 
   // Get the appropriate service based on the provider state
-  static Future<List<Product>> getProducts(APIProvider apiProvider) async {
+  static Future<List<Product>> getProducts(APIController apiController) async {
     final stopwatch = Stopwatch()..start();
 
     List<Product> products;
 
-    if (apiProvider.useDio) {
+    if (apiController.useDio) {
       products = await _getProductsDio();
     } else {
       products = await _getProductsHttp();
     }
 
     stopwatch.stop();
-    apiProvider.setRuntime('Runtime: ${stopwatch.elapsedMilliseconds} ms');
+    apiController.setRuntime('Runtime: ${stopwatch.elapsedMilliseconds} ms');
 
     return products;
   }
 
   static Future<Product> getProductById(
     String id,
-    APIProvider apiProvider,
+    APIController apiController,
   ) async {
     final stopwatch = Stopwatch()..start();
 
     Product product;
 
-    if (apiProvider.useDio) {
+    if (apiController.useDio) {
       product = await _getProductByIdDio(id);
     } else {
       product = await _getProductByIdHttp(id);
     }
 
     stopwatch.stop();
-    apiProvider.setRuntime('Runtime: ${stopwatch.elapsedMilliseconds} ms');
+    apiController.setRuntime('Runtime: ${stopwatch.elapsedMilliseconds} ms');
 
     return product;
   }

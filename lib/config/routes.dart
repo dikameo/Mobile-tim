@@ -1,20 +1,26 @@
-import 'package:flutter/material.dart';
-import '../screens/splash_screen.dart';
-import '../screens/auth/login_screen.dart';
-import '../screens/auth/register_screen.dart';
-import '../screens/home/home_screen.dart';
-import '../screens/product/explore_screen.dart';
-import '../screens/cart/cart_screen.dart';
-import '../screens/cart/checkout_screen.dart';
+import 'package:get/get.dart';
+import '../views/splash_screen.dart';
+import '../views/auth/login_screen.dart';
+import '../views/auth/register_screen.dart';
+import '../views/home/home_screen.dart';
+import '../views/product/explore_screen.dart';
+import '../views/cart/cart_screen.dart';
+import '../views/cart/checkout_screen.dart';
+import '../views/history/transaction_history_screen.dart';
+import '../views/profile/profile_screen.dart';
+import '../views/wishlist/wishlist_screen.dart';
 
 class AppRoutes {
-  static Map<String, WidgetBuilder> routes = {
-    '/': (context) => const SplashScreen(),
-    '/login': (context) => const LoginScreen(),
-    '/register': (context) => const RegisterScreen(),
-    '/home': (context) => const HomeScreen(),
-    '/explore': (context) => const ExploreScreen(),
-    '/cart': (context) => const CartScreen(),
-    '/checkout': (context) => const CheckoutScreen(),
-  };
+  static List<GetPage> routes = [
+    GetPage(name: '/', page: () => const SplashScreen()),
+    GetPage(name: '/login', page: () => const LoginScreen()),
+    GetPage(name: '/register', page: () => const RegisterScreen()),
+    GetPage(name: '/home', page: () => const HomeScreen()),
+    GetPage(name: '/explore', page: () => const ExploreScreen()),
+    GetPage(name: '/cart', page: () => const CartScreen()),
+    GetPage(name: '/checkout', page: () => const CheckoutScreen()),
+    GetPage(name: '/history', page: () => const TransactionHistoryScreen()),
+    GetPage(name: '/profile', page: () => const ProfileScreen()),
+    GetPage(name: '/wishlist', page: () => const WishlistScreen()),
+  ];
 }

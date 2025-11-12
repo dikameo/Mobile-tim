@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import '../models/cart_item.dart';
 import '../models/product.dart';
 
-class CartProvider with ChangeNotifier {
+class CartController extends GetxController {
   final List<CartItem> _items = [];
 
   List<CartItem> get items => _items;
@@ -40,12 +40,12 @@ class CartProvider with ChangeNotifier {
       _items.add(CartItem(product: product, quantity: quantity));
     }
 
-    notifyListeners();
+    update();
   }
 
   void removeFromCart(String productId) {
     _items.removeWhere((item) => item.product.id == productId);
-    notifyListeners();
+    update();
   }
 
   void updateQuantity(String productId, int quantity) {
@@ -56,7 +56,7 @@ class CartProvider with ChangeNotifier {
       } else {
         _items[index].quantity = quantity;
       }
-      notifyListeners();
+      update();
     }
   }
 
@@ -64,7 +64,7 @@ class CartProvider with ChangeNotifier {
     final index = _items.indexWhere((item) => item.product.id == productId);
     if (index >= 0) {
       _items[index].isSelected = !_items[index].isSelected;
-      notifyListeners();
+      update();
     }
   }
 
@@ -72,17 +72,17 @@ class CartProvider with ChangeNotifier {
     for (var item in _items) {
       item.isSelected = selected;
     }
-    notifyListeners();
+    update();
   }
 
   void clearCart() {
     _items.clear();
-    notifyListeners();
+    update();
   }
 
   void clearSelectedItems() {
     _items.removeWhere((item) => item.isSelected);
-    notifyListeners();
+    update();
   }
 
   bool isInCart(String productId) {

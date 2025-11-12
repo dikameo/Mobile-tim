@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import '../../config/theme.dart';
-import '../../providers/auth_provider.dart';
+import '../../controllers/auth_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = Get.find<AuthController>();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundOffWhite,
@@ -83,9 +83,7 @@ class ProfileScreen extends StatelessWidget {
               isDestructive: true,
               onTap: () {
                 auth.logout();
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/login', (route) => false);
+                Get.offAllNamed('/login');
               },
             ),
           ],

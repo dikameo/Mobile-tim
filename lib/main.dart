@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'config/theme.dart';
 import 'config/routes.dart';
-import 'providers/cart_provider.dart';
-import 'providers/wishlist_provider.dart';
-import 'providers/order_provider.dart';
-import 'providers/auth_provider.dart';
-import 'providers/api_provider.dart';
+import 'controllers/auth_controller.dart';
+import 'controllers/cart_controller.dart';
+import 'controllers/wishlist_controller.dart';
+import 'controllers/order_controller.dart';
+import 'controllers/api_controller.dart';
+import 'data/local_data_service.dart';
 
-void main() {
+void main() async {
+  // Initialize GetX services and controllers
+  WidgetsFlutterBinding.ensureInitialized(); // Required before using SharedPreferences
+  await Get.putAsync(() => LocalDataService().init());
+  
+  Get.put(AuthController()..autoLogin());
+  Get.put(CartController());
+  Get.put(WishlistController());
+  Get.put(OrderController());
+  Get.put(APIController());
+  
   runApp(const RoastMasterApp());
 }
 
@@ -17,20 +28,11 @@ class RoastMasterApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()..autoLogin()),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => WishlistProvider()),
-        ChangeNotifierProvider(create: (_) => OrderProvider()),
-        ChangeNotifierProvider(create: (_) => APIProvider()),
-      ],
-      child: MaterialApp(
-        title: 'RoastMaster ID',
-        theme: AppTheme.theme,
-        initialRoute: '/',
-        routes: AppRoutes.routes,
-      ),
+    return GetMaterialApp(
+      title: 'RoastMaster ID',
+      theme: AppTheme.theme,
+      initialRoute: '/',
+      getPages: AppRoutes.routes,
     );
   }
 }

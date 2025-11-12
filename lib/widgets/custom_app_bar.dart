@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import '../config/theme.dart';
-import '../providers/cart_provider.dart';
+import '../controllers/cart_controller.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showBackButton;
@@ -14,7 +14,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cartProvider = Provider.of<CartProvider>(context);
+    final cartProvider = Get.find<CartController>();
 
     return AppBar(
       backgroundColor: AppTheme.white,
@@ -25,7 +25,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 Icons.arrow_back,
                 color: AppTheme.primaryCharcoal,
               ),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Get.back(),
             )
           : Padding(
               padding: const EdgeInsets.all(12.0),
@@ -50,7 +50,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.search, color: AppTheme.primaryCharcoal),
           onPressed: () {
-            Navigator.of(context).pushNamed('/explore');
+            Get.toNamed('/explore');
           },
         ),
         // Cart icon with badge
@@ -63,7 +63,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 color: AppTheme.primaryCharcoal,
               ),
               onPressed: () {
-                Navigator.of(context).pushNamed('/cart');
+                Get.toNamed('/cart');
               },
             ),
             if (cartProvider.itemCount > 0)
@@ -101,11 +101,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           onPressed: () {
             // Show notification
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('No new notifications'),
-                duration: Duration(seconds: 1),
-              ),
+            Get.snackbar(
+              'Info',
+              'No new notifications',
+              snackPosition: SnackPosition.BOTTOM,
             );
           },
         ),

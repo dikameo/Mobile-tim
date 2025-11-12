@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:badges/badges.dart' as badges;
 import '../config/theme.dart';
-import '../providers/wishlist_provider.dart';
+import '../controllers/wishlist_controller.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -16,7 +16,7 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wishlistProvider = Provider.of<WishlistProvider>(context);
+    final wishlistProvider = Get.find<WishlistController>();
 
     return Container(
       decoration: BoxDecoration(

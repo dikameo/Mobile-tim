@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../config/theme.dart';
 import '../../models/order.dart';
-import '../../providers/order_provider.dart';
+import '../../controllers/order_controller.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -54,6 +54,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
 
   @override
   Widget build(BuildContext context) {
+    final orderController = Get.find<OrderController>();
+    
     return Scaffold(
       backgroundColor: AppTheme.backgroundOffWhite,
       appBar: AppBar(
@@ -71,44 +73,40 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
           }).toList(),
         ),
       ),
-      body: Consumer<OrderProvider>(
-        builder: (context, orderProvider, child) {
-          return TabBarView(
-            controller: _tabController,
-            children: _statusTabs.map((status) {
-              final orders = orderProvider.getOrdersByStatus(status);
+      body: TabBarView(
+        controller: _tabController,
+        children: _statusTabs.map((status) {
+          final orders = orderController.getOrdersByStatus(status);
 
-              if (orders.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.receipt_long_outlined,
-                        size: 80,
-                        color: AppTheme.textGray.withOpacity(0.5),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No ${_getStatusLabel(status).toLowerCase()} orders',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(color: AppTheme.textGray),
-                      ),
-                    ],
+          if (orders.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 80,
+                    color: AppTheme.textGray.withOpacity(0.5),
                   ),
-                );
-              }
+                  const SizedBox(height: 16),
+                  Text(
+                    'No ${_getStatusLabel(status).toLowerCase()} orders',
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(color: AppTheme.textGray),
+                  ),
+                ],
+              ),
+            );
+          }
 
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: orders.length,
-                itemBuilder: (context, index) {
-                  return _OrderCard(order: orders[index]);
-                },
-              );
-            }).toList(),
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              return _OrderCard(order: orders[index]);
+            },
           );
-        },
+        }).toList(),
       ),
     );
   }

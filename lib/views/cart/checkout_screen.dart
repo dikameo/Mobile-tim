@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../config/theme.dart';
-import '../../providers/cart_provider.dart';
-import '../../providers/order_provider.dart';
+import '../../controllers/cart_controller.dart';
+import '../../controllers/order_controller.dart';
 import '../../models/order.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -42,8 +42,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   ];
 
   Future<void> _processCheckout() async {
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final cartProvider = Get.find<CartController>();
+    final orderProvider = Get.find<OrderController>();
 
     setState(() => _isProcessing = true);
 
@@ -79,66 +79,63 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       setState(() => _isProcessing = false);
 
       // Show success dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.check_circle,
-                color: AppTheme.successGreen,
-                size: 64,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Order Placed Successfully!',
-                style: Theme.of(context).textTheme.titleLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Order ID: ${order.orderId}',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Please complete payment within 24 hours',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: AppTheme.textGray),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(); // Close checkout
-                Navigator.of(context).pop(); // Close cart
-              },
-              child: const Text('Back to Home'),
+      Get.defaultDialog(
+        title: "",
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.check_circle,
+              color: AppTheme.successGreen,
+              size: 64,
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(); // Close checkout
-                Navigator.of(context).pop(); // Close cart
-                // Navigate to history (would need to update home screen nav)
-              },
-              child: const Text('View Order'),
+            const SizedBox(height: 16),
+            Text(
+              'Order Placed Successfully!',
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Order ID: ${order.orderId}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Please complete payment within 24 hours',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppTheme.textGray),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back(); // Close dialog
+              Get.back(); // Close checkout
+              Get.back(); // Close cart
+            },
+            child: const Text('Back to Home'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back(); // Close dialog
+              Get.back(); // Close checkout
+              Get.back(); // Close cart
+              Get.toNamed('/history'); // Navigate to history
+            },
+            child: const Text('View Order'),
+          ),
+        ],
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final cartProvider = Provider.of<CartProvider>(context);
+    final cartProvider = Get.find<CartController>();
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -386,19 +383,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _showAddressDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Address'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+    Get.defaultDialog(
+      title: "Select Address",
+      content: Container(
+        constraints: BoxConstraints(
+          maxHeight: Get.height * 0.6,
+        ),
+        child: ListView(
           children: _addresses.map((address) {
             return RadioListTile<String>(
               value: address,
               groupValue: _selectedAddress,
               onChanged: (value) {
                 setState(() => _selectedAddress = value!);
-                Navigator.pop(context);
+                Get.back();
               },
               activeColor: AppTheme.secondaryOrange,
               title: Text(address),
