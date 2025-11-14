@@ -13,8 +13,8 @@ class ProductRepository {
   ProductRepository({
     required HiveService hiveService,
     required SupabaseService supabaseService,
-  })  : _hiveService = hiveService,
-        _supabaseService = supabaseService;
+  }) : _hiveService = hiveService,
+       _supabaseService = supabaseService;
 
   // ==================== READ OPERATIONS ====================
 
@@ -26,11 +26,11 @@ class ProductRepository {
     try {
       debugPrint('📦 Loading products from Hive...');
       final hiveProducts = _hiveService.getAllProducts();
-      
+
       final products = hiveProducts
           .map((hp) => Product.fromJson(hp.toProduct()))
           .toList();
-      
+
       debugPrint('📦 Loaded ${products.length} products from Hive');
       return products;
     } catch (e) {
@@ -60,7 +60,7 @@ class ProductRepository {
     try {
       final hiveProduct = _hiveService.getProduct(id);
       if (hiveProduct == null) return null;
-      
+
       return Product.fromJson(hiveProduct.toProduct());
     } catch (e) {
       debugPrint('❌ Error loading product: $e');
@@ -76,7 +76,7 @@ class ProductRepository {
   /// 3. If offline, queue for later sync
   Future<Product> addProduct(Product product) async {
     debugPrint('➕ Adding product: ${product.name}');
-    
+
     try {
       // STEP 1: Save to Hive first (instant local storage)
       final hiveProduct = ProductHive.fromProduct(product.toJson());
@@ -88,13 +88,13 @@ class ProductRepository {
       try {
         final response = await _supabaseService.createProduct(product);
         debugPrint('✅ Product synced to Supabase: ${response['id']}');
-        
+
         // Mark as synced in Hive
         hiveProduct.isSynced = true;
         hiveProduct.lastSynced = DateTime.now();
         await _hiveService.saveProduct(hiveProduct);
         debugPrint('✅ Product marked as synced in Hive');
-        
+
         return product;
       } catch (syncError) {
         debugPrint('⚠️ Cloud sync failed, queued for later: $syncError');
@@ -116,7 +116,7 @@ class ProductRepository {
   /// 3. Try to sync to Supabase if online
   Future<Product> updateProduct(Product product) async {
     debugPrint('✏️ Updating product: ${product.name}');
-    
+
     try {
       // STEP 1: Update Hive first
       final hiveProduct = ProductHive.fromProduct(product.toJson());
@@ -128,13 +128,13 @@ class ProductRepository {
       try {
         await _supabaseService.updateProduct(product.id, product);
         debugPrint('✅ Product synced to Supabase: ${product.id}');
-        
+
         // Mark as synced
         hiveProduct.isSynced = true;
         hiveProduct.lastSynced = DateTime.now();
         await _hiveService.saveProduct(hiveProduct);
         debugPrint('✅ Product marked as synced');
-        
+
         return product;
       } catch (syncError) {
         debugPrint('⚠️ Cloud sync failed, queued for later: $syncError');
@@ -153,7 +153,7 @@ class ProductRepository {
   /// 2. Try to soft delete in Supabase (set is_active = false)
   Future<void> deleteProduct(String productId) async {
     debugPrint('🗑️ Deleting product: $productId');
-    
+
     try {
       // STEP 1: Remove from Hive first (instant UI update)
       await _hiveService.deleteProduct(productId);
@@ -180,10 +180,10 @@ class ProductRepository {
   /// Push all unsynced products to Supabase
   Future<void> syncPendingOperations() async {
     debugPrint('🔄 Syncing pending operations...');
-    
+
     try {
       final unsyncedProducts = _hiveService.getUnsyncedProducts();
-      
+
       if (unsyncedProducts.isEmpty) {
         debugPrint('✅ No pending operations');
         return;
@@ -194,15 +194,15 @@ class ProductRepository {
       for (var hiveProduct in unsyncedProducts) {
         try {
           final product = Product.fromJson(hiveProduct.toProduct());
-          
+
           // Try to update in Supabase
           await _supabaseService.updateProduct(product.id, product);
-          
+
           // Mark as synced
           hiveProduct.isSynced = true;
           hiveProduct.lastSynced = DateTime.now();
           await _hiveService.saveProduct(hiveProduct);
-          
+
           debugPrint('✅ Synced product: ${product.id}');
         } catch (e) {
           debugPrint('❌ Failed to sync product ${hiveProduct.id}: $e');
@@ -220,7 +220,7 @@ class ProductRepository {
   /// This is called after syncPendingOperations to ensure data consistency
   Future<List<Product>> fetchFromCloud() async {
     debugPrint('☁️ Fetching products from Supabase...');
-    
+
     try {
       final cloudProducts = await _supabaseService.getProducts();
       debugPrint('☁️ Fetched ${cloudProducts.length} products from cloud');
@@ -237,7 +237,8 @@ class ProductRepository {
           'price': productData['price'],
           'capacity': productData['capacity'],
           'rating': productData['rating'],
-          'reviewCount': productData['review_count'] ?? productData['reviewCount'],
+          'reviewCount':
+              productData['review_count'] ?? productData['reviewCount'],
           'category': productData['category'],
           'specifications': specs is String ? {} : specs,
           'description': productData['description'],
@@ -250,7 +251,7 @@ class ProductRepository {
         hp.isSynced = true;
         hp.lastSynced = DateTime.now();
       }
-      
+
       await _hiveService.saveProducts(hiveProducts);
       debugPrint('✅ Hive cache updated with ${hiveProducts.length} products');
 
@@ -268,14 +269,14 @@ class ProductRepository {
   /// This is the main sync method called by controllers
   Future<List<Product>> fullSync() async {
     debugPrint('🔄 Starting full sync...');
-    
+
     try {
       // STEP 1: Push pending operations to cloud
       await syncPendingOperations();
-      
+
       // STEP 2: Fetch fresh data from cloud
       final products = await fetchFromCloud();
-      
+
       debugPrint('✅ Full sync completed: ${products.length} products');
       return products;
     } catch (e) {
@@ -298,7 +299,7 @@ class ProductRepository {
       'unsynced_count': unsyncedCount,
       'synced_count': totalCount - unsyncedCount,
       'last_sync_time': lastSyncTime?.toIso8601String(),
-      'sync_percentage': totalCount > 0 
+      'sync_percentage': totalCount > 0
           ? ((totalCount - unsyncedCount) / totalCount * 100).toStringAsFixed(1)
           : '0.0',
     };

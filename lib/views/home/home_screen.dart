@@ -156,7 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
         await _loadProducts();
       },
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(), // Enable pull even when content is short
+        physics:
+            const AlwaysScrollableScrollPhysics(), // Enable pull even when content is short
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -233,122 +234,122 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             }),
-          const SizedBox(height: 8),
-          // Hero Banner
-          const HeroBanner(),
-          const SizedBox(height: 24),
-          // Categories
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Categories',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 45,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
+            const SizedBox(height: 8),
+            // Hero Banner
+            const HeroBanner(),
+            const SizedBox(height: 24),
+            // Categories
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                final category = categories[index];
-                return CategoryChip(
-                  label: category,
-                  isSelected: _selectedCategory == category,
-                  onTap: () => _filterProducts(category),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Featured Roasters
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Featured Roasters',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                TextButton(
-                  onPressed: () {
-                    _onNavTap(1); // Navigate to Explore
-                  },
-                  child: const Text('See All'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 320,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: featuredProducts.length,
-              itemBuilder: (context, index) {
-                return ProductCard(
-                  product: featuredProducts[index],
-                  isHorizontal: true,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProductDetailScreen(
-                          product: featuredProducts[index],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Just For You
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Just For You',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.65,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+              child: Text(
+                'Categories',
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-              itemCount: _filteredProducts.length,
-              itemBuilder: (context, index) {
-                return ProductCard(
-                  product: _filteredProducts[index],
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProductDetailScreen(
-                          product: _filteredProducts[index],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
             ),
-          ),
-          const SizedBox(height: 80),
-        ],
-      ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 45,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  return CategoryChip(
+                    label: category,
+                    isSelected: _selectedCategory == category,
+                    onTap: () => _filterProducts(category),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Featured Roasters
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Featured Roasters',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      _onNavTap(1); // Navigate to Explore
+                    },
+                    child: const Text('See All'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 320,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: featuredProducts.length,
+                itemBuilder: (context, index) {
+                  return ProductCard(
+                    product: featuredProducts[index],
+                    isHorizontal: true,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetailScreen(
+                            product: featuredProducts[index],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Just For You
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Just For You',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.65,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: _filteredProducts.length,
+                itemBuilder: (context, index) {
+                  return ProductCard(
+                    product: _filteredProducts[index],
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetailScreen(
+                            product: _filteredProducts[index],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 80),
+          ],
+        ),
       ), // Close RefreshIndicator child
     ); // Close RefreshIndicator
   }

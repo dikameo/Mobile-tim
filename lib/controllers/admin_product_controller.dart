@@ -94,12 +94,14 @@ class AdminProductController extends GetxController {
       if (_syncController.isOnline) {
         debugPrint('🔄 Syncing pending operations...');
         await _repository.syncPendingOperations();
-        
+
         // STEP 3: Fetch fresh data from cloud
         debugPrint('☁️ Fetching fresh data from cloud...');
         final cloudProducts = await _repository.fetchFromCloud();
         products.value = cloudProducts;
-        debugPrint('✅ Updated with ${cloudProducts.length} products from cloud');
+        debugPrint(
+          '✅ Updated with ${cloudProducts.length} products from cloud',
+        );
       } else {
         debugPrint('⚠️ Offline mode - showing cached data only');
       }
@@ -219,7 +221,7 @@ class AdminProductController extends GetxController {
 
       // Use repository to add product (offline-first with queue)
       await _repository.addProduct(product);
-      
+
       // Update reactive list immediately
       products.add(product);
       debugPrint('✅ Product added to reactive list');
