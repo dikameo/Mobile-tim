@@ -15,16 +15,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final cartProvider = Get.find<CartController>();
+    final theme = Theme.of(context);
 
     return AppBar(
-      backgroundColor: AppTheme.white,
+      backgroundColor: theme.appBarTheme.backgroundColor,
       elevation: 0,
       leading: showBackButton
           ? IconButton(
-              icon: const Icon(
-                Icons.arrow_back,
-                color: AppTheme.primaryCharcoal,
-              ),
+              icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
               onPressed: () => Get.back(),
             )
           : Padding(
@@ -42,13 +40,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
       title: title != null
-          ? Text(title!, style: Theme.of(context).textTheme.headlineSmall)
+          ? Text(title!, style: theme.textTheme.headlineSmall)
           : null,
       centerTitle: title != null,
       actions: [
         // Search icon
         IconButton(
-          icon: const Icon(Icons.search, color: AppTheme.primaryCharcoal),
+          icon: Icon(Icons.search, color: theme.iconTheme.color),
           onPressed: () {
             Get.toNamed('/explore');
           },
@@ -58,9 +56,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           alignment: Alignment.center,
           children: [
             IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.shopping_cart_outlined,
-                color: AppTheme.primaryCharcoal,
+                color: theme.iconTheme.color,
               ),
               onPressed: () {
                 Get.toNamed('/cart');
@@ -83,7 +81,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   child: Text(
                     '${cartProvider.itemCount}',
                     style: const TextStyle(
-                      color: AppTheme.white,
+                      color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -95,9 +93,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         // Notification icon
         IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.notifications_outlined,
-            color: AppTheme.primaryCharcoal,
+            color: theme.iconTheme.color,
           ),
           onPressed: () {
             // Show notification
@@ -112,7 +110,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(color: AppTheme.borderGray, height: 1),
+        child: Container(color: theme.dividerColor, height: 1),
       ),
     );
   }

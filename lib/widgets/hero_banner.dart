@@ -25,7 +25,7 @@ class _HeroBannerState extends State<HeroBanner> {
       subtitle: 'Up to 20% Off Commercial Series',
       imageUrl:
           'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800',
-      color: AppTheme.primaryCharcoal,
+      color: Colors.grey[800]!,
     ),
     BannerItem(
       title: 'Premium Quality',
@@ -106,7 +106,7 @@ class _HeroBannerState extends State<HeroBanner> {
                                 banner.title,
                                 style: Theme.of(context).textTheme.titleLarge
                                     ?.copyWith(
-                                      color: AppTheme.white,
+                                      color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
@@ -115,7 +115,7 @@ class _HeroBannerState extends State<HeroBanner> {
                                 banner.subtitle,
                                 style: Theme.of(context).textTheme.headlineSmall
                                     ?.copyWith(
-                                      color: AppTheme.white,
+                                      color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
@@ -123,7 +123,7 @@ class _HeroBannerState extends State<HeroBanner> {
                               ElevatedButton(
                                 onPressed: () {},
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.white,
+                                  backgroundColor: Colors.white,
                                   foregroundColor: banner.color,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 20,
@@ -145,21 +145,26 @@ class _HeroBannerState extends State<HeroBanner> {
         ),
         const SizedBox(height: 12),
         // Dots indicator
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: _banners.asMap().entries.map((entry) {
-            return Container(
-              width: _currentIndex == entry.key ? 20 : 8,
-              height: 8,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                color: _currentIndex == entry.key
-                    ? AppTheme.secondaryOrange
-                    : AppTheme.borderGray,
-              ),
+        Builder(
+          builder: (context) {
+            final theme = Theme.of(context);
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: _banners.asMap().entries.map((entry) {
+                return Container(
+                  width: _currentIndex == entry.key ? 20 : 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: _currentIndex == entry.key
+                        ? AppTheme.secondaryOrange
+                        : theme.dividerColor,
+                  ),
+                );
+              }).toList(),
             );
-          }).toList(),
+          },
         ),
       ],
     );

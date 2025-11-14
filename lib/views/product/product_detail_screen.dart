@@ -25,6 +25,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final wishlistProvider = Get.find<WishlistController>();
     final cartProvider = Get.find<CartController>();
     final isWishlisted = wishlistProvider.isInWishlist(widget.product.id);
@@ -35,7 +36,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppTheme.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Main content
@@ -45,12 +46,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               SliverAppBar(
                 expandedHeight: 400,
                 pinned: true,
-                backgroundColor: AppTheme.white,
+                backgroundColor: theme.appBarTheme.backgroundColor,
                 leading: IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.white,
+                      color: theme.cardColor,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -59,10 +60,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: AppTheme.primaryCharcoal,
-                    ),
+                    child: Icon(Icons.arrow_back, color: theme.iconTheme.color),
                   ),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -71,7 +69,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppTheme.white,
+                        color: theme.cardColor,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -84,7 +82,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         isWishlisted ? Icons.favorite : Icons.favorite_outline,
                         color: isWishlisted
                             ? AppTheme.secondaryOrange
-                            : AppTheme.primaryCharcoal,
+                            : theme.iconTheme.color,
                       ),
                     ),
                     onPressed: () {
@@ -125,13 +123,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               fit: BoxFit.cover,
                               width: double.infinity,
                               placeholder: (context, url) => Container(
-                                color: AppTheme.backgroundOffWhite,
+                                color: theme.brightness == Brightness.dark
+                                    ? Colors.grey[800]
+                                    : Colors.grey[200],
                                 child: const Center(
                                   child: CircularProgressIndicator(),
                                 ),
                               ),
                               errorWidget: (context, url, error) => Container(
-                                color: AppTheme.backgroundOffWhite,
+                                color: theme.brightness == Brightness.dark
+                                    ? Colors.grey[800]
+                                    : Colors.grey[200],
                                 child: const Icon(
                                   Icons.coffee,
                                   size: 80,
@@ -164,7 +166,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       borderRadius: BorderRadius.circular(4),
                                       color: _currentImageIndex == entry.key
                                           ? AppTheme.secondaryOrange
-                                          : AppTheme.borderGray,
+                                          : theme.dividerColor,
                                     ),
                                   );
                                 })
@@ -178,12 +180,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               // Product details
               SliverToBoxAdapter(
                 child: Container(
-                  color: AppTheme.backgroundOffWhite,
+                  color: theme.scaffoldBackgroundColor,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        color: AppTheme.white,
+                        color: theme.cardColor,
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +215,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             // Product name
                             Text(
                               widget.product.name,
-                              style: Theme.of(context).textTheme.headlineMedium,
+                              style: theme.textTheme.headlineMedium,
                             ),
                             const SizedBox(height: 12),
                             // Rating
@@ -232,15 +234,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 const SizedBox(width: 8),
                                 Text(
                                   '${widget.product.rating}',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: theme.textTheme.titleMedium,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   '(${widget.product.reviewCount} reviews)',
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(color: AppTheme.textGray),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.textTheme.bodyMedium?.color
+                                        ?.withOpacity(0.6),
+                                  ),
                                 ),
                               ],
                             ),
@@ -248,11 +250,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             // Price
                             Text(
                               currencyFormatter.format(widget.product.price),
-                              style: Theme.of(context).textTheme.displaySmall
-                                  ?.copyWith(
-                                    color: AppTheme.secondaryOrange,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: theme.textTheme.displaySmall?.copyWith(
+                                color: AppTheme.secondaryOrange,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -260,7 +261,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       const SizedBox(height: 8),
                       // Specifications
                       Container(
-                        color: AppTheme.white,
+                        color: theme.cardColor,
                         child: Column(
                           children: [
                             InkWell(
@@ -277,15 +278,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   children: [
                                     Text(
                                       'Technical Specifications',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleLarge,
+                                      style: theme.textTheme.titleLarge,
                                     ),
                                     Icon(
                                       _isSpecExpanded
                                           ? Icons.keyboard_arrow_up
                                           : Icons.keyboard_arrow_down,
-                                      color: AppTheme.textGray,
+                                      color: theme.iconTheme.color?.withOpacity(
+                                        0.6,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -317,12 +318,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                 flex: 2,
                                                 child: Text(
                                                   entry.key,
-                                                  style: Theme.of(context)
+                                                  style: theme
                                                       .textTheme
                                                       .bodyMedium
                                                       ?.copyWith(
-                                                        color:
-                                                            AppTheme.textGray,
+                                                        color: theme
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.color
+                                                            ?.withOpacity(0.6),
                                                       ),
                                                 ),
                                               ),
@@ -330,7 +334,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                 flex: 3,
                                                 child: Text(
                                                   entry.value.toString(),
-                                                  style: Theme.of(context)
+                                                  style: theme
                                                       .textTheme
                                                       .bodyMedium
                                                       ?.copyWith(
@@ -352,19 +356,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       const SizedBox(height: 8),
                       // Description
                       Container(
-                        color: AppTheme.white,
+                        color: theme.cardColor,
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Description',
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: theme.textTheme.titleLarge,
                             ),
                             const SizedBox(height: 12),
                             Text(
                               widget.product.description,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: theme.textTheme.bodyMedium,
                             ),
                           ],
                         ),
@@ -384,7 +388,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.white,
+                color: theme.cardColor,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
@@ -398,7 +402,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   // Quantity selector
                   Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppTheme.borderGray),
+                      border: Border.all(color: theme.dividerColor),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -411,10 +415,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             }
                           },
                         ),
-                        Text(
-                          '$_quantity',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                        Text('$_quantity', style: theme.textTheme.titleMedium),
                         IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: () {

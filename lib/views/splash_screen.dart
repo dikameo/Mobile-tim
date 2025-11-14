@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../config/theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -29,10 +30,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate to login after 2 seconds
+    // Navigate to login after 2 seconds using GetX
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        Get.offAllNamed('/login'); // Use GetX navigation
       }
     });
   }

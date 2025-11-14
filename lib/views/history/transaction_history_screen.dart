@@ -54,19 +54,22 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final orderController = Get.find<OrderController>();
-    
+
     return Scaffold(
-      backgroundColor: AppTheme.backgroundOffWhite,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Transaction History'),
-        backgroundColor: AppTheme.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         automaticallyImplyLeading: false,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
           labelColor: AppTheme.secondaryOrange,
-          unselectedLabelColor: AppTheme.textGray,
+          unselectedLabelColor: theme.textTheme.bodyMedium?.color?.withOpacity(
+            0.6,
+          ),
           indicatorColor: AppTheme.secondaryOrange,
           tabs: _statusTabs.map((status) {
             return Tab(text: _getStatusLabel(status));
@@ -86,13 +89,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                   Icon(
                     Icons.receipt_long_outlined,
                     size: 80,
-                    color: AppTheme.textGray.withOpacity(0.5),
+                    color: theme.iconTheme.color?.withOpacity(0.3),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'No ${_getStatusLabel(status).toLowerCase()} orders',
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(color: AppTheme.textGray),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.6,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -134,6 +140,7 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -144,9 +151,9 @@ class _OrderCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppTheme.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderGray),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: InkWell(
         onTap: () {
@@ -167,13 +174,14 @@ class _OrderCard extends StatelessWidget {
                     children: [
                       Text(
                         order.orderId,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         dateFormatter.format(order.orderDate),
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall,
                       ),
                     ],
                   ),
@@ -188,7 +196,7 @@ class _OrderCard extends StatelessWidget {
                     ),
                     child: Text(
                       order.statusText,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      style: theme.textTheme.labelMedium?.copyWith(
                         color: _getStatusColor(order.status),
                         fontWeight: FontWeight.bold,
                       ),
@@ -205,15 +213,17 @@ class _OrderCard extends StatelessWidget {
                     children: [
                       Text(
                         '${item.quantity}x',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textGray,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                            0.6,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           item.product.name,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: theme.textTheme.bodyMedium,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -225,9 +235,9 @@ class _OrderCard extends StatelessWidget {
               if (order.items.length > 2)
                 Text(
                   '+${order.items.length - 2} more items',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: AppTheme.textGray),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                  ),
                 ),
               const SizedBox(height: 12),
               // Total and action
@@ -237,18 +247,14 @@ class _OrderCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Total Payment',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+                      Text('Total Payment', style: theme.textTheme.bodySmall),
                       const SizedBox(height: 4),
                       Text(
                         currencyFormatter.format(order.total),
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: AppTheme.secondaryOrange,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: AppTheme.secondaryOrange,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -284,140 +290,144 @@ class _OrderCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: AppTheme.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppTheme.borderGray,
-                  borderRadius: BorderRadius.circular(2),
+      builder: (context) {
+        final theme = Theme.of(context);
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: theme.dialogBackgroundColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
                 ),
               ),
-              // Content
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Order Details',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 24),
-                      // Order info
-                      _DetailRow(label: 'Order ID', value: order.orderId),
-                      _DetailRow(
-                        label: 'Status',
-                        value: order.statusText,
-                        valueColor: _getStatusColor(order.status),
-                      ),
-                      _DetailRow(
-                        label: 'Date',
-                        value: DateFormat(
-                          'dd MMM yyyy, HH:mm',
-                        ).format(order.orderDate),
-                      ),
-                      if (order.trackingNumber != null)
-                        _DetailRow(
-                          label: 'Tracking',
-                          value: order.trackingNumber!,
-                        ),
-                      const Divider(height: 32),
-                      // Items
-                      Text(
-                        'Order Items',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 12),
-                      ...order.items.map((item) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${item.quantity}x',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.product.name,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                    Text(
-                                      currencyFormatter.format(
-                                        item.priceAtPurchase,
-                                      ),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                currencyFormatter.format(item.totalPrice),
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                      const Divider(height: 32),
-                      // Shipping
-                      _DetailRow(
-                        label: 'Shipping Address',
-                        value: order.shippingAddress,
-                      ),
-                      _DetailRow(
-                        label: 'Payment Method',
-                        value: order.paymentMethod,
-                      ),
-                      const Divider(height: 32),
-                      // Summary
-                      _DetailRow(
-                        label: 'Subtotal',
-                        value: currencyFormatter.format(order.subtotal),
-                      ),
-                      _DetailRow(
-                        label: 'Shipping',
-                        value: currencyFormatter.format(order.shippingCost),
-                      ),
-                      const SizedBox(height: 12),
-                      _DetailRow(
-                        label: 'Total',
-                        value: currencyFormatter.format(order.total),
-                        isBold: true,
-                        valueColor: AppTheme.secondaryOrange,
-                      ),
-                    ],
+              child: Column(
+                children: [
+                  // Handle bar
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.dividerColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
+                  // Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Order Details',
+                            style: theme.textTheme.headlineMedium,
+                          ),
+                          const SizedBox(height: 24),
+                          // Order info
+                          _DetailRow(label: 'Order ID', value: order.orderId),
+                          _DetailRow(
+                            label: 'Status',
+                            value: order.statusText,
+                            valueColor: _getStatusColor(order.status),
+                          ),
+                          _DetailRow(
+                            label: 'Date',
+                            value: DateFormat(
+                              'dd MMM yyyy, HH:mm',
+                            ).format(order.orderDate),
+                          ),
+                          if (order.trackingNumber != null)
+                            _DetailRow(
+                              label: 'Tracking',
+                              value: order.trackingNumber!,
+                            ),
+                          const Divider(height: 32),
+                          // Items
+                          Text(
+                            'Order Items',
+                            style: theme.textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 12),
+                          ...order.items.map((item) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${item.quantity}x',
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.product.name,
+                                          style: theme.textTheme.bodyMedium,
+                                        ),
+                                        Text(
+                                          currencyFormatter.format(
+                                            item.priceAtPurchase,
+                                          ),
+                                          style: theme.textTheme.bodySmall,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    currencyFormatter.format(item.totalPrice),
+                                    style: theme.textTheme.titleSmall,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                          const Divider(height: 32),
+                          // Shipping
+                          _DetailRow(
+                            label: 'Shipping Address',
+                            value: order.shippingAddress,
+                          ),
+                          _DetailRow(
+                            label: 'Payment Method',
+                            value: order.paymentMethod,
+                          ),
+                          const Divider(height: 32),
+                          // Summary
+                          _DetailRow(
+                            label: 'Subtotal',
+                            value: currencyFormatter.format(order.subtotal),
+                          ),
+                          _DetailRow(
+                            label: 'Shipping',
+                            value: currencyFormatter.format(order.shippingCost),
+                          ),
+                          const SizedBox(height: 12),
+                          _DetailRow(
+                            label: 'Total',
+                            value: currencyFormatter.format(order.total),
+                            isBold: true,
+                            valueColor: AppTheme.secondaryOrange,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -437,6 +447,7 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -446,16 +457,16 @@ class _DetailRow extends StatelessWidget {
             flex: 2,
             child: Text(
               label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textGray),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+              ),
             ),
           ),
           Expanded(
             flex: 3,
             child: Text(
               value,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
                 color: valueColor,
               ),

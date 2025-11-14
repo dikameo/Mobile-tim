@@ -19,39 +19,52 @@ class SharedPreferencesHelper {
   static const String _keyUseFallback = 'use_fallback';
 
   // Instance of SharedPreferences
-  late SharedPreferences _prefs;
+  SharedPreferences? _prefs;
 
   // Initialize SharedPreferences
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  // Getters for SharedPreferences instance 
-  SharedPreferences get prefs => _prefs;
+  // Getters for SharedPreferences instance
+  SharedPreferences? get prefs => _prefs;
+
+  // Check if initialized
+  bool get isInitialized => _prefs != null;
 
   // User authentication methods
   Future<bool> saveUser(User user) async {
-    return await _prefs.setString(_keyUserId, user.id) &&
-        await _prefs.setString(_keyUserName, user.name) &&
-        await _prefs.setString(_keyUserEmail, user.email) &&
-        await _prefs.setString(_keyUserPhone, user.phone) &&
+    if (_prefs == null) {
+      print('⚠️ SharedPreferences not initialized, initializing now...');
+      await init();
+    }
+
+    return await _prefs!.setString(_keyUserId, user.id) &&
+        await _prefs!.setString(_keyUserName, user.name) &&
+        await _prefs!.setString(_keyUserEmail, user.email) &&
+        await _prefs!.setString(_keyUserPhone, user.phone) &&
         (user.photoUrl != null
-            ? await _prefs.setString(_keyUserPhotoUrl, user.photoUrl!)
+            ? await _prefs!.setString(_keyUserPhotoUrl, user.photoUrl!)
             : true) &&
-        await _prefs.setBool(_keyUserLoggedIn, true);
+        await _prefs!.setBool(_keyUserLoggedIn, true);
   }
 
   User? getUser() {
-    final isLoggedIn = _prefs.getBool(_keyUserLoggedIn);
+    if (_prefs == null) {
+      print('⚠️ SharedPreferences not initialized');
+      return null;
+    }
+
+    final isLoggedIn = _prefs!.getBool(_keyUserLoggedIn);
     if (isLoggedIn == null || !isLoggedIn) {
       return null;
     }
 
-    final id = _prefs.getString(_keyUserId) ?? '';
-    final name = _prefs.getString(_keyUserName) ?? '';
-    final email = _prefs.getString(_keyUserEmail) ?? '';
-    final phone = _prefs.getString(_keyUserPhone) ?? '';
-    final photoUrl = _prefs.getString(_keyUserPhotoUrl);
+    final id = _prefs!.getString(_keyUserId) ?? '';
+    final name = _prefs!.getString(_keyUserName) ?? '';
+    final email = _prefs!.getString(_keyUserEmail) ?? '';
+    final phone = _prefs!.getString(_keyUserPhone) ?? '';
+    final photoUrl = _prefs!.getString(_keyUserPhotoUrl);
 
     if (id.isEmpty || name.isEmpty || email.isEmpty || phone.isEmpty) {
       return null;
@@ -67,46 +80,61 @@ class SharedPreferencesHelper {
   }
 
   Future<bool> removeUser() async {
-    return await _prefs.remove(_keyUserId) &&
-        await _prefs.remove(_keyUserName) &&
-        await _prefs.remove(_keyUserEmail) &&
-        await _prefs.remove(_keyUserPhone) &&
-        await _prefs.remove(_keyUserPhotoUrl) &&
-        await _prefs.setBool(_keyUserLoggedIn, false);
+    if (_prefs == null) {
+      print('⚠️ SharedPreferences not initialized');
+      return false;
+    }
+    return await _prefs!.remove(_keyUserId) &&
+        await _prefs!.remove(_keyUserName) &&
+        await _prefs!.remove(_keyUserEmail) &&
+        await _prefs!.remove(_keyUserPhone) &&
+        await _prefs!.remove(_keyUserPhotoUrl) &&
+        await _prefs!.setBool(_keyUserLoggedIn, false);
   }
 
   bool isUserLoggedIn() {
-    return _prefs.getBool(_keyUserLoggedIn) ?? false;
+    if (_prefs == null) return false;
+    return _prefs!.getBool(_keyUserLoggedIn) ?? false;
   }
 
   // Onboarding methods
   Future<bool> setOnboardingCompleted() async {
-    return await _prefs.setBool(_keyOnboardingCompleted, true);
+    if (_prefs == null) await init();
+    return await _prefs!.setBool(_keyOnboardingCompleted, true);
   }
 
   bool isOnboardingCompleted() {
-    return _prefs.getBool(_keyOnboardingCompleted) ?? false;
+    if (_prefs == null) return false;
+    return _prefs!.getBool(_keyOnboardingCompleted) ?? false;
   }
 
   // API settings methods
   Future<bool> setUseDio(bool value) async {
-    return await _prefs.setBool(_keyUseDio, value);
+    if (_prefs == null) await init();
+    return await _prefs!.setBool(_keyUseDio, value);
   }
 
   bool getUseDio() {
-    return _prefs.getBool(_keyUseDio) ?? true; // Default to Dio
+    if (_prefs == null) return true;
+    return _prefs!.getBool(_keyUseDio) ?? true; // Default to Dio
   }
 
   Future<bool> setUseFallback(bool value) async {
-    return await _prefs.setBool(_keyUseFallback, value);
+    if (_prefs == null) await init();
+    return await _prefs!.setBool(_keyUseFallback, value);
   }
 
   bool getUseFallback() {
-    return _prefs.getBool(_keyUseFallback) ?? false;
+    if (_prefs == null) return false;
+    return _prefs!.getBool(_keyUseFallback) ?? false;
   }
 
   // Clear all data
   Future<bool> clearAll() async {
-    return await _prefs.clear();
+    if (_prefs == null) {
+      print('⚠️ SharedPreferences not initialized');
+      return false;
+    }
+    return await _prefs!.clear();
   }
 }

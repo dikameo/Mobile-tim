@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../config/theme.dart';
+import '../../config/supabase_config.dart';
 import '../../controllers/auth_controller.dart';
+import '../../utils/input_validator.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,7 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
+  final _authController = Get.find<AuthController>();
   bool _obscurePassword = true;
 
   @override
@@ -25,58 +27,66 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+    if (!InputValidator.validateForm(_formKey)) return;
 
-      try {
-        await Get.find<AuthController>().login(
-          _emailController.text, 
-          _passwordController.text
-        );
+    try {
+      await _authController.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
 
-        if (mounted) {
+      if (mounted && _authController.isAuthenticated) {
+        // Check if user is admin
+        debugPrint('🔍 Checking user role...');
+        final isAdmin = await SupabaseConfig.isAdmin();
+
+        if (isAdmin) {
+          debugPrint('✅ Admin user detected - navigating to admin products');
+          Get.offAllNamed('/admin/products');
+        } else {
+          debugPrint('✅ Regular user detected - navigating to home');
           Get.offAllNamed('/home');
         }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Get.snackbar(
+          'Login Failed',
+          e.toString(),
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     }
   }
 
   Future<void> _handleGoogleLogin() async {
-    setState(() => _isLoading = true);
-
     try {
-      await Get.find<AuthController>().loginWithGoogle();
+      await _authController.loginWithGoogle();
 
-      if (mounted) {
+      if (mounted && _authController.isAuthenticated) {
         Get.offAllNamed('/home');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Google login failed: $e')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+        Get.snackbar(
+          'Google Login Failed',
+          'Feature not available yet',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.backgroundOffWhite,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -95,10 +105,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: AppTheme.secondaryOrange,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.coffee_maker,
                       size: 50,
-                      color: AppTheme.white,
+                      color: theme.colorScheme.onPrimary,
                     ),
                   ),
                 ),
@@ -106,15 +116,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Welcome text
                 Text(
                   'Welcome Back',
-                  style: Theme.of(context).textTheme.displaySmall,
+                  style: theme.textTheme.displaySmall,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Sign in to continue',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: AppTheme.textGray),
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
@@ -123,15 +133,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    labelText: 'Email or Phone',
+                    labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email or phone';
-                    }
-                    return null;
-                  },
+                  validator: InputValidator.isEmail,
                 ),
                 const SizedBox(height: 16),
                 // Password field
@@ -152,12 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
+                  validator: InputValidator.password,
                 ),
                 const SizedBox(height: 8),
                 // Forgot password
@@ -170,23 +170,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 // Login button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleLogin,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppTheme.white,
+                Obx(
+                  () => ElevatedButton(
+                    onPressed: _authController.isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: _authController.isLoading
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                theme.colorScheme.onPrimary,
+                              ),
                             ),
-                          ),
-                        )
-                      : const Text('Sign In'),
+                          )
+                        : const Text('Sign In'),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 // Divider
@@ -197,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
                         'Or continue with',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall,
                       ),
                     ),
                     const Expanded(child: Divider()),
@@ -205,14 +207,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 // Google sign in
-                OutlinedButton.icon(
-                  onPressed: _isLoading ? null : _handleGoogleLogin,
-                  icon: const Icon(Icons.g_mobiledata, size: 28),
-                  label: const Text('Sign in with Google'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    foregroundColor: AppTheme.textDark,
-                    side: const BorderSide(color: AppTheme.borderGray),
+                Obx(
+                  () => OutlinedButton.icon(
+                    onPressed: _authController.isLoading
+                        ? null
+                        : _handleGoogleLogin,
+                    icon: const Icon(Icons.g_mobiledata, size: 28),
+                    label: const Text('Sign in with Google'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      foregroundColor: theme.textTheme.bodyLarge?.color,
+                      side: BorderSide(color: theme.dividerColor),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -222,11 +228,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text(
                       "Don't have an account? ",
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: theme.textTheme.bodyMedium,
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushNamed('/register');
+                        Get.toNamed('/register');
                       },
                       child: const Text('Sign Up'),
                     ),

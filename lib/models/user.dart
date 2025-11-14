@@ -13,14 +13,25 @@ class User {
     this.photoUrl,
   });
 
-  // Dummy user
-  static User getDummyUser() {
+  // Convert from JSON
+  factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: '1',
-      name: 'John Doe',
-      email: 'john.doe@roastmaster.id',
-      phone: '+62 812-3456-7890',
-      photoUrl: 'https://i.pravatar.cc/150?img=12',
+      id: json['id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      phone: json['phone'] ?? '',
+      photoUrl: json['photoUrl'],
     );
+  }
+
+  // Convert to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'photoUrl': photoUrl,
+    };
   }
 }

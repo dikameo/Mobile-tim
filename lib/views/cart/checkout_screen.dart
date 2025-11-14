@@ -90,23 +90,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               size: 64,
             ),
             const SizedBox(height: 16),
-            Text(
-              'Order Placed Successfully!',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Order ID: ${order.orderId}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Please complete payment within 24 hours',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppTheme.textGray),
-              textAlign: TextAlign.center,
+            Builder(
+              builder: (context) {
+                final theme = Theme.of(context);
+                return Column(
+                  children: [
+                    Text(
+                      'Order Placed Successfully!',
+                      style: theme.textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Order ID: ${order.orderId}',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Please complete payment within 24 hours',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                          0.6,
+                        ),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -135,6 +146,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final cartProvider = Get.find<CartController>();
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
@@ -143,10 +155,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundOffWhite,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Checkout'),
-        backgroundColor: AppTheme.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
       ),
       body: Column(
         children: [
@@ -157,7 +169,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 children: [
                   // Shipping Address
                   Container(
-                    color: AppTheme.white,
+                    color: theme.cardColor,
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +183,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             const SizedBox(width: 8),
                             Text(
                               'Shipping Address',
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: theme.textTheme.titleLarge,
                             ),
                           ],
                         ),
@@ -179,7 +191,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppTheme.backgroundOffWhite,
+                            color: theme.brightness == Brightness.dark
+                                ? Colors.grey[800]
+                                : Colors.grey[100],
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -187,7 +201,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               Expanded(
                                 child: Text(
                                   _selectedAddress,
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ),
                               IconButton(
@@ -205,7 +219,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 8),
                   // Shipping Method
                   Container(
-                    color: AppTheme.white,
+                    color: theme.cardColor,
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +233,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             const SizedBox(width: 8),
                             Text(
                               'Shipping Method',
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: theme.textTheme.titleLarge,
                             ),
                           ],
                         ),
@@ -244,7 +258,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 8),
                   // Payment Method
                   Container(
-                    color: AppTheme.white,
+                    color: theme.cardColor,
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +272,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             const SizedBox(width: 8),
                             Text(
                               'Payment Method',
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: theme.textTheme.titleLarge,
                             ),
                           ],
                         ),
@@ -280,14 +294,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 8),
                   // Order Summary
                   Container(
-                    color: AppTheme.white,
+                    color: theme.cardColor,
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Order Summary',
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: theme.textTheme.titleLarge,
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -295,11 +309,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           children: [
                             Text(
                               'Subtotal (${cartProvider.selectedItemCount} items)',
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: theme.textTheme.bodyMedium,
                             ),
                             Text(
                               currencyFormatter.format(cartProvider.subtotal),
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: theme.textTheme.bodyMedium,
                             ),
                           ],
                         ),
@@ -309,13 +323,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           children: [
                             Text(
                               'Shipping Cost',
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: theme.textTheme.bodyMedium,
                             ),
                             Text(
                               currencyFormatter.format(
                                 cartProvider.shippingCost,
                               ),
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: theme.textTheme.bodyMedium,
                             ),
                           ],
                         ),
@@ -325,16 +339,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           children: [
                             Text(
                               'Total Payment',
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold),
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             Text(
                               currencyFormatter.format(cartProvider.total),
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(
-                                    color: AppTheme.secondaryOrange,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: AppTheme.secondaryOrange,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -349,7 +363,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.white,
+              color: theme.cardColor,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -386,9 +400,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     Get.defaultDialog(
       title: "Select Address",
       content: Container(
-        constraints: BoxConstraints(
-          maxHeight: Get.height * 0.6,
-        ),
+        constraints: BoxConstraints(maxHeight: Get.height * 0.6),
         child: ListView(
           children: _addresses.map((address) {
             return RadioListTile<String>(

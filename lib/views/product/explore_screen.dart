@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../config/theme.dart';
 import '../../models/product.dart';
-import '../../controllers/api_controller.dart';
-import '../../services/product_service.dart';
+import '../../services/hive_service.dart';
+import '../../controllers/sync_controller.dart';
 import '../../widgets/product_card.dart';
 import 'product_detail_screen.dart';
 
@@ -32,13 +31,42 @@ class _ExploreScreenState extends State<ExploreScreen> {
     });
 
     try {
-      final apiController = Get.find<APIController>();
-      final products = await ProductService.getProducts(apiController);
+      // Get services
+      final hiveService = Get.find<HiveService>();
+      final syncController = Get.find<SyncController>();
+
+      // OFFLINE-FIRST: Load from Hive immediately
+      final hiveProducts = hiveService.getAllProducts();
+      final products = hiveProducts
+          .map((hp) => Product.fromJson(hp.toProduct()))
+          .toList();
+
       setState(() {
         _allProducts = products;
         _visibleProducts = products;
         _isLoading = false;
       });
+
+      // Background sync if online
+      if (syncController.isOnline) {
+        await syncController.performSync();
+
+        // Reload from Hive after sync
+        final updatedHiveProducts = hiveService.getAllProducts();
+        final updatedProducts = updatedHiveProducts
+            .map((hp) => Product.fromJson(hp.toProduct()))
+            .toList();
+
+        setState(() {
+          _allProducts = updatedProducts;
+          // Preserve search filter
+          if (_searchController.text.isNotEmpty) {
+            _onSearchChanged(_searchController.text);
+          } else {
+            _visibleProducts = updatedProducts;
+          }
+        });
+      }
     } catch (e) {
       print('Error loading products: $e');
       setState(() {
@@ -60,18 +88,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final apiController = Get.find<APIController>();
-    
+    final theme = Theme.of(context);
+
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundOffWhite,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppTheme.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         title: TextField(
           controller: _searchController,
           onChanged: _onSearchChanged,
@@ -81,15 +107,32 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
         ),
         actions: [
-          Row(
-            children: [
-              Text(
-                apiController.lastRuntime,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+          // Sync status indicator
+          Obx(() {
+            final syncController = Get.find<SyncController>();
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Icon(
+                    syncController.isOnline
+                        ? Icons.cloud_done
+                        : Icons.cloud_off,
+                    size: 20,
+                    color: syncController.isOnline ? Colors.green : Colors.grey,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    syncController.isOnline ? 'Online' : 'Offline',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-            ],
-          ),
+            );
+          }),
         ],
       ),
       body: _visibleProducts.isEmpty
@@ -100,13 +143,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   Icon(
                     Icons.search_off,
                     size: 80,
-                    color: AppTheme.textGray.withOpacity(0.5),
+                    color: theme.iconTheme.color?.withOpacity(0.3),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    'No products found',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text('No products found', style: theme.textTheme.titleMedium),
                 ],
               ),
             )

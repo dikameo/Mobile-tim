@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:dio/dio.dart' as dio_pkg;
 import 'package:http/http.dart' as http;
 import '../models/product.dart';
 import '../controllers/api_controller.dart';
 
 class ProductService {
-  static const String _baseUrl = 'http://localhost:5000';
+  static const String _baseUrl = 'http://172.16.99.70:5000';
 
   // Get the appropriate service based on the provider state
   static Future<List<Product>> getProducts(APIController apiController) async {

@@ -10,6 +10,7 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final cartProvider = Get.find<CartController>();
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
@@ -18,17 +19,18 @@ class CartScreen extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundOffWhite,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Shopping Cart'),
-        backgroundColor: AppTheme.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         actions: [
           if (cartProvider.items.isNotEmpty)
             TextButton(
               onPressed: () {
                 Get.defaultDialog(
                   title: 'Clear Cart',
-                  middleText: 'Are you sure you want to remove all items from cart?',
+                  middleText:
+                      'Are you sure you want to remove all items from cart?',
                   actions: [
                     TextButton(
                       onPressed: () => Get.back(),
@@ -59,21 +61,25 @@ class CartScreen extends StatelessWidget {
                   Icon(
                     Icons.shopping_cart_outlined,
                     size: 100,
-                    color: AppTheme.textGray.withOpacity(0.5),
+                    color: theme.iconTheme.color?.withOpacity(0.3),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Your cart is empty',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleLarge?.copyWith(color: AppTheme.textGray),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.6,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Add some products to get started',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: AppTheme.textGray),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.6,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
@@ -89,7 +95,7 @@ class CartScreen extends StatelessWidget {
               children: [
                 // Select all checkbox
                 Container(
-                  color: AppTheme.white,
+                  color: theme.cardColor,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
@@ -107,7 +113,7 @@ class CartScreen extends StatelessWidget {
                       ),
                       Text(
                         'Select All (${cartProvider.items.length} items)',
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: theme.textTheme.titleMedium,
                       ),
                     ],
                   ),
@@ -141,7 +147,7 @@ class CartScreen extends StatelessWidget {
                           ),
                         ),
                         child: Container(
-                          color: AppTheme.white,
+                          color: theme.cardColor,
                           margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.all(12),
                           child: Row(
@@ -165,13 +171,18 @@ class CartScreen extends StatelessWidget {
                                   placeholder: (context, url) => Container(
                                     width: 80,
                                     height: 80,
-                                    color: AppTheme.backgroundOffWhite,
+                                    color: theme.brightness == Brightness.dark
+                                        ? Colors.grey[800]
+                                        : Colors.grey[200],
                                   ),
                                   errorWidget: (context, url, error) =>
                                       Container(
                                         width: 80,
                                         height: 80,
-                                        color: AppTheme.backgroundOffWhite,
+                                        color:
+                                            theme.brightness == Brightness.dark
+                                            ? Colors.grey[800]
+                                            : Colors.grey[200],
                                         child: const Icon(Icons.coffee),
                                       ),
                                 ),
@@ -184,27 +195,21 @@ class CartScreen extends StatelessWidget {
                                   children: [
                                     Text(
                                       item.product.name,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleMedium,
+                                      style: theme.textTheme.titleMedium,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       item.product.capacity,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
+                                      style: theme.textTheme.bodySmall,
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
                                       currencyFormatter.format(
                                         item.product.price,
                                       ),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
+                                      style: theme.textTheme.titleMedium
                                           ?.copyWith(
                                             color: AppTheme.secondaryOrange,
                                             fontWeight: FontWeight.bold,
@@ -219,7 +224,7 @@ class CartScreen extends StatelessWidget {
                                   Container(
                                     decoration: BoxDecoration(
                                       border: Border.all(
-                                        color: AppTheme.borderGray,
+                                        color: theme.dividerColor,
                                       ),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
@@ -248,9 +253,7 @@ class CartScreen extends StatelessWidget {
                                           ),
                                           child: Text(
                                             '${item.quantity}',
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.titleSmall,
+                                            style: theme.textTheme.titleSmall,
                                           ),
                                         ),
                                         InkWell(
@@ -301,7 +304,7 @@ class CartScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppTheme.white,
+                    color: theme.cardColor,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
@@ -318,11 +321,11 @@ class CartScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Subtotal (${cartProvider.selectedItemCount} items)',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: theme.textTheme.bodyMedium,
                           ),
                           Text(
                             currencyFormatter.format(cartProvider.subtotal),
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: theme.textTheme.titleMedium,
                           ),
                         ],
                       ),
@@ -332,11 +335,11 @@ class CartScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Shipping Cost',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: theme.textTheme.bodyMedium,
                           ),
                           Text(
                             currencyFormatter.format(cartProvider.shippingCost),
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: theme.textTheme.titleMedium,
                           ),
                         ],
                       ),
@@ -346,16 +349,16 @@ class CartScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Total',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text(
                             currencyFormatter.format(cartProvider.total),
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  color: AppTheme.secondaryOrange,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: AppTheme.secondaryOrange,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),

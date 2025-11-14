@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../config/theme.dart';
 import '../../controllers/auth_controller.dart';
+import '../../utils/input_validator.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,7 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
+  final _authController = Get.find<AuthController>();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -32,44 +32,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+    if (!InputValidator.validateForm(_formKey)) return;
 
-      try {
-        await Get.find<AuthController>().register(
-          _nameController.text,
-          _emailController.text,
-          _phoneController.text,
-          _passwordController.text,
+    try {
+      await _authController.register(
+        _nameController.text.trim(),
+        _emailController.text.trim(),
+        _phoneController.text.trim(),
+        _passwordController.text,
+      );
+
+      if (mounted && _authController.isAuthenticated) {
+        Get.offAllNamed('/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        Get.snackbar(
+          'Registration Failed',
+          e.toString(),
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
         );
-
-        if (mounted) {
-          Get.offAllNamed('/home');
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Registration failed: $e')));
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.backgroundOffWhite,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppTheme.backgroundOffWhite,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.primaryCharcoal),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
+          onPressed: () => Get.back(),
         ),
       ),
       body: SafeArea(
@@ -83,15 +83,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Header
                 Text(
                   'Create Account',
-                  style: Theme.of(context).textTheme.displaySmall,
+                  style: theme.textTheme.displaySmall,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Sign up to get started',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: AppTheme.textGray),
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
@@ -102,12 +102,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Full Name',
                     prefixIcon: Icon(Icons.person_outline),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                      InputValidator.minLength(value, 3, field: 'Name'),
                 ),
                 const SizedBox(height: 16),
                 // Email field
@@ -118,15 +114,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
+                  validator: InputValidator.isEmail,
                 ),
                 const SizedBox(height: 16),
                 // Phone field
@@ -137,12 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Phone Number',
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    return null;
-                  },
+                  validator: InputValidator.phoneNumber,
                 ),
                 const SizedBox(height: 16),
                 // Password field
@@ -163,15 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
+                  validator: InputValidator.password,
                 ),
                 const SizedBox(height: 16),
                 // Confirm password field
@@ -195,35 +170,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
+                  validator: (value) => InputValidator.confirmPassword(
+                    value,
+                    _passwordController.text,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 // Register button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleRegister,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppTheme.white,
+                Obx(
+                  () => ElevatedButton(
+                    onPressed: _authController.isLoading
+                        ? null
+                        : _handleRegister,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: _authController.isLoading
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                theme.colorScheme.onPrimary,
+                              ),
                             ),
-                          ),
-                        )
-                      : const Text('Sign Up'),
+                          )
+                        : const Text('Sign Up'),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 // Login link
@@ -232,11 +206,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Text(
                       'Already have an account? ',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: theme.textTheme.bodyMedium,
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        Get.back();
                       },
                       child: const Text('Sign In'),
                     ),

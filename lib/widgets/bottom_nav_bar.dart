@@ -17,10 +17,11 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wishlistProvider = Get.find<WishlistController>();
+    final theme = Theme.of(context);
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.white,
+        color: theme.bottomNavigationBarTheme.backgroundColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -33,9 +34,9 @@ class CustomBottomNavBar extends StatelessWidget {
         currentIndex: currentIndex,
         onTap: onTap,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: AppTheme.white,
-        selectedItemColor: AppTheme.secondaryOrange,
-        unselectedItemColor: AppTheme.textGray,
+        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor,
+        selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor,
+        unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor,
         selectedFontSize: 12,
         unselectedFontSize: 12,
         elevation: 0,

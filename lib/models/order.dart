@@ -14,6 +14,18 @@ class OrderItem {
   });
 
   double get totalPrice => priceAtPurchase * quantity;
+
+  Map<String, dynamic> toJson() => {
+    'product': product.toJson(),
+    'quantity': quantity,
+    'price_at_purchase': priceAtPurchase,
+  };
+
+  factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
+    product: Product.fromJson(json['product']),
+    quantity: json['quantity'],
+    priceAtPurchase: (json['price_at_purchase'] as num).toDouble(),
+  );
 }
 
 class Order {
@@ -56,104 +68,34 @@ class Order {
     }
   }
 
-  // Dummy data factory
-  static List<Order> getDummyOrders() {
-    final products = Product.getDummyProducts();
-    final now = DateTime.now();
+  Map<String, dynamic> toJson() => {
+    'id': orderId,
+    'status': status.toString().split('.').last,
+    'subtotal': subtotal,
+    'shipping_cost': shippingCost,
+    'total': total,
+    'order_date': orderDate.toIso8601String(),
+    'shipping_address': shippingAddress,
+    'payment_method': paymentMethod,
+    'tracking_number': trackingNumber,
+    'items': items.map((item) => item.toJson()).toList(),
+  };
 
-    return [
-      Order(
-        orderId: 'INV-2025-001234',
-        items: [
-          OrderItem(
-            product: products[0],
-            quantity: 1,
-            priceAtPurchase: products[0].price,
-          ),
-        ],
-        status: OrderStatus.completed,
-        subtotal: products[0].price,
-        shippingCost: 250000,
-        total: products[0].price + 250000,
-        orderDate: now.subtract(const Duration(days: 15)),
-        shippingAddress: 'Jl. Kopi Raya No. 123, Jakarta Selatan',
-        paymentMethod: 'Virtual Account BCA',
-        trackingNumber: 'JNE1234567890',
-      ),
-      Order(
-        orderId: 'INV-2025-001235',
-        items: [
-          OrderItem(
-            product: products[1],
-            quantity: 1,
-            priceAtPurchase: products[1].price,
-          ),
-          OrderItem(
-            product: products[6],
-            quantity: 2,
-            priceAtPurchase: products[6].price,
-          ),
-        ],
-        status: OrderStatus.shipped,
-        subtotal: products[1].price + (products[6].price * 2),
-        shippingCost: 500000,
-        total: products[1].price + (products[6].price * 2) + 500000,
-        orderDate: now.subtract(const Duration(days: 3)),
-        shippingAddress: 'Jl. Roasting Street No. 45, Bandung',
-        paymentMethod: 'Credit Card',
-        trackingNumber: 'SICEPAT9876543210',
-      ),
-      Order(
-        orderId: 'INV-2025-001236',
-        items: [
-          OrderItem(
-            product: products[3],
-            quantity: 1,
-            priceAtPurchase: products[3].price,
-          ),
-        ],
-        status: OrderStatus.processing,
-        subtotal: products[3].price,
-        shippingCost: 200000,
-        total: products[3].price + 200000,
-        orderDate: now.subtract(const Duration(days: 1)),
-        shippingAddress: 'Jl. Espresso No. 78, Surabaya',
-        paymentMethod: 'Virtual Account Mandiri',
-      ),
-      Order(
-        orderId: 'INV-2025-001237',
-        items: [
-          OrderItem(
-            product: products[4],
-            quantity: 1,
-            priceAtPurchase: products[4].price,
-          ),
-        ],
-        status: OrderStatus.pendingPayment,
-        subtotal: products[4].price,
-        shippingCost: 450000,
-        total: products[4].price + 450000,
-        orderDate: now.subtract(const Duration(hours: 2)),
-        shippingAddress: 'Jl. Barista Avenue No. 12, Yogyakarta',
-        paymentMethod: 'Transfer Bank',
-      ),
-      Order(
-        orderId: 'INV-2025-001238',
-        items: [
-          OrderItem(
-            product: products[5],
-            quantity: 1,
-            priceAtPurchase: products[5].price,
-          ),
-        ],
-        status: OrderStatus.cancelled,
-        subtotal: products[5].price,
-        shippingCost: 300000,
-        total: products[5].price + 300000,
-        orderDate: now.subtract(const Duration(days: 7)),
-        shippingAddress: 'Jl. Beans Lane No. 99, Semarang',
-        paymentMethod: 'Virtual Account BNI',
-      ),
-    ];
-  }
+  factory Order.fromJson(Map<String, dynamic> json) => Order(
+    orderId: json['id'],
+    items: (json['items'] as List)
+        .map((item) => OrderItem.fromJson(item))
+        .toList(),
+    status: OrderStatus.values.firstWhere(
+      (e) => e.toString().split('.').last == json['status'],
+      orElse: () => OrderStatus.processing,
+    ),
+    subtotal: (json['subtotal'] as num).toDouble(),
+    shippingCost: (json['shipping_cost'] as num).toDouble(),
+    total: (json['total'] as num).toDouble(),
+    orderDate: DateTime.parse(json['order_date']),
+    shippingAddress: json['shipping_address'],
+    paymentMethod: json['payment_method'],
+    trackingNumber: json['tracking_number'],
+  );
 }
