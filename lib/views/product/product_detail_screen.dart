@@ -28,7 +28,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final theme = Theme.of(context);
     final wishlistProvider = Get.find<WishlistController>();
     final cartProvider = Get.find<CartController>();
-    final isWishlisted = wishlistProvider.isInWishlist(widget.product.id);
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -65,42 +64,47 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
+                  Obx(
+                    () {
+                      final isWishlisted = wishlistProvider.isInWishlist(widget.product.id);
+                      return IconButton(
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.cardColor,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Icon(
-                        isWishlisted ? Icons.favorite : Icons.favorite_outline,
-                        color: isWishlisted
-                            ? AppTheme.secondaryOrange
-                            : theme.iconTheme.color,
-                      ),
-                    ),
-                    onPressed: () {
-                      wishlistProvider.toggleWishlist(widget.product);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isWishlisted
-                                ? 'Removed from wishlist'
-                                : 'Added to wishlist',
+                          child: Icon(
+                            isWishlisted ? Icons.favorite : Icons.favorite_outline,
+                            color: isWishlisted
+                                ? AppTheme.secondaryOrange
+                                : theme.iconTheme.color,
                           ),
-                          duration: const Duration(seconds: 1),
                         ),
+                        onPressed: () {
+                          wishlistProvider.toggleWishlist(widget.product);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                isWishlisted
+                                    ? 'Removed from wishlist'
+                                    : 'Added to wishlist',
+                              ),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        },
                       );
                     },
-                  ),
+                  ), // Close Obx that wraps the IconButton
                   const SizedBox(width: 8),
-                ],
+                ], // Close actions list
                 flexibleSpace: FlexibleSpaceBar(
                   background: Column(
                     children: [

@@ -21,7 +21,6 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wishlistProvider = Get.find<WishlistController>();
-    final isWishlisted = wishlistProvider.isInWishlist(product.id);
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -31,7 +30,7 @@ class ProductCard extends StatelessWidget {
     if (isHorizontal) {
       return _buildHorizontalCard(
         context,
-        isWishlisted,
+        false, // Placeholder value, isWishlisted is now handled inside Obx
         currencyFormatter,
         wishlistProvider,
       );
@@ -39,7 +38,7 @@ class ProductCard extends StatelessWidget {
 
     return _buildVerticalCard(
       context,
-      isWishlisted,
+      false, // Placeholder value, isWishlisted is now handled inside Obx
       currencyFormatter,
       wishlistProvider,
     );
@@ -47,7 +46,7 @@ class ProductCard extends StatelessWidget {
 
   Widget _buildVerticalCard(
     BuildContext context,
-    bool isWishlisted,
+    bool _, // Placeholder parameter, not used since isWishlisted is handled in Obx
     NumberFormat currencyFormatter,
     WishlistController wishlistProvider,
   ) {
@@ -96,28 +95,33 @@ class ProductCard extends StatelessWidget {
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: GestureDetector(
-                    onTap: () => wishlistProvider.toggleWishlist(product),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
+                  child: Obx(
+                    () {
+                      final isWishlisted = wishlistProvider.isInWishlist(product.id);
+                      return GestureDetector(
+                        onTap: () => wishlistProvider.toggleWishlist(product),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: theme.cardColor,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Icon(
-                        isWishlisted ? Icons.favorite : Icons.favorite_outline,
-                        color: isWishlisted
-                            ? AppTheme.secondaryOrange
-                            : theme.iconTheme.color?.withOpacity(0.6),
-                        size: 18,
-                      ),
-                    ),
+                          child: Icon(
+                            isWishlisted ? Icons.favorite : Icons.favorite_outline,
+                            color: isWishlisted
+                                ? AppTheme.secondaryOrange
+                                : theme.iconTheme.color?.withOpacity(0.6),
+                            size: 18,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -194,7 +198,7 @@ class ProductCard extends StatelessWidget {
 
   Widget _buildHorizontalCard(
     BuildContext context,
-    bool isWishlisted,
+    bool _, // Placeholder parameter, not used since isWishlisted is handled in Obx
     NumberFormat currencyFormatter,
     WishlistController wishlistProvider,
   ) {
@@ -245,28 +249,33 @@ class ProductCard extends StatelessWidget {
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: GestureDetector(
-                    onTap: () => wishlistProvider.toggleWishlist(product),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
+                  child: Obx(
+                    () {
+                      final isWishlisted = wishlistProvider.isInWishlist(product.id);
+                      return GestureDetector(
+                        onTap: () => wishlistProvider.toggleWishlist(product),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: theme.cardColor,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Icon(
-                        isWishlisted ? Icons.favorite : Icons.favorite_outline,
-                        color: isWishlisted
-                            ? AppTheme.secondaryOrange
-                            : theme.iconTheme.color?.withOpacity(0.6),
-                        size: 18,
-                      ),
-                    ),
+                          child: Icon(
+                            isWishlisted ? Icons.favorite : Icons.favorite_outline,
+                            color: isWishlisted
+                                ? AppTheme.secondaryOrange
+                                : theme.iconTheme.color?.withOpacity(0.6),
+                            size: 18,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],

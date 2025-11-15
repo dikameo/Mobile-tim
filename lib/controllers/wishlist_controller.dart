@@ -2,9 +2,9 @@ import 'package:get/get.dart';
 import '../models/product.dart';
 
 class WishlistController extends GetxController {
-  final List<Product> _items = [];
+  final RxList<Product> _items = <Product>[].obs;
 
-  List<Product> get items => _items;
+  List<Product> get items => _items.toList(); // Return a copy to prevent direct modification
 
   int get itemCount => _items.length;
 
@@ -18,16 +18,13 @@ class WishlistController extends GetxController {
     } else {
       _items.add(product);
     }
-    update();
   }
 
   void removeFromWishlist(String productId) {
     _items.removeWhere((product) => product.id == productId);
-    update();
   }
 
   void clearWishlist() {
     _items.clear();
-    update();
   }
 }
