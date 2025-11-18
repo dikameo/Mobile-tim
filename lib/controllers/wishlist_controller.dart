@@ -67,19 +67,31 @@ class WishlistController extends GetxController {
       }
 
       if (isInWishlist(product.id)) {
-        // Remove from wishlist
+        // Remove from wishlist - optimistic update
         _items.removeWhere((item) => item.id == product.id);
-        await _hiveService.removeFromWishlist(user.id, product.id);
-        debugPrint('✅ Removed ${product.name} from wishlist');
+        try {
+          await _hiveService.removeFromWishlist(user.id, product.id);
+          debugPrint('✅ Removed ${product.name} from wishlist');
+        } catch (e) {
+          // Rollback on error
+          _items.add(product);
+          rethrow;
+        }
       } else {
-        // Add to wishlist
+        // Add to wishlist - optimistic update
         _items.add(product);
-        final wishlistItem = WishlistItemHive.fromProduct(
-          user.id,
-          product.toJson(),
-        );
-        await _hiveService.addToWishlist(user.id, wishlistItem);
-        debugPrint('✅ Added ${product.name} to wishlist');
+        try {
+          final wishlistItem = WishlistItemHive.fromProduct(
+            user.id,
+            product.toJson(),
+          );
+          await _hiveService.addToWishlist(user.id, wishlistItem);
+          debugPrint('✅ Added ${product.name} to wishlist');
+        } catch (e) {
+          // Rollback on error
+          _items.removeWhere((item) => item.id == product.id);
+          rethrow;
+        }
       }
     } catch (e) {
       debugPrint('❌ Error toggling wishlist: $e');
