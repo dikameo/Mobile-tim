@@ -1,14 +1,17 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import '../models/product_hive.dart';
+import '../models/wishlist_item_hive.dart';
 
 /// Service untuk manage Hive local storage
 class HiveService {
   static const String _productsBoxName = 'products';
   static const String _settingsBoxName = 'settings';
+  static const String _wishlistBoxName = 'wishlist';
 
   Box<ProductHive>? _productsBox;
   Box? _settingsBox;
+  Box<WishlistItemHive>? _wishlistBox;
 
   /// Initialize Hive
   Future<void> initialize() async {
@@ -19,10 +22,14 @@ class HiveService {
       if (!Hive.isAdapterRegistered(0)) {
         Hive.registerAdapter(ProductHiveAdapter());
       }
+      if (!Hive.isAdapterRegistered(1)) {
+        Hive.registerAdapter(WishlistItemHiveAdapter());
+      }
 
       // Open boxes
       _productsBox = await Hive.openBox<ProductHive>(_productsBoxName);
       _settingsBox = await Hive.openBox(_settingsBoxName);
+      _wishlistBox = await Hive.openBox<WishlistItemHive>(_wishlistBoxName);
 
       debugPrint('Hive initialized successfully');
     } catch (e) {
@@ -45,6 +52,14 @@ class HiveService {
       throw Exception('Settings box not initialized. Call initialize() first.');
     }
     return _settingsBox!;
+  }
+
+  /// Get wishlist box
+  Box<WishlistItemHive> get wishlistBox {
+    if (_wishlistBox == null || !_wishlistBox!.isOpen) {
+      throw Exception('Wishlist box not initialized. Call initialize() first.');
+    }
+    return _wishlistBox!;
   }
 
   // ==================== PRODUCT CRUD ====================
@@ -190,11 +205,79 @@ class HiveService {
     return productsBox.length;
   }
 
+  // ==================== WISHLIST CRUD ====================
+
+  /// Add product to wishlist for specific user
+  Future<void> addToWishlist(String userId, WishlistItemHive item) async {
+    try {
+      await wishlistBox.put(item.hiveKey, item);
+      debugPrint('Product added to wishlist for user $userId: ${item.productId}');
+    } catch (e) {
+      debugPrint('Error adding to wishlist: $e');
+      rethrow;
+    }
+  }
+
+  /// Remove product from wishlist for specific user
+  Future<void> removeFromWishlist(String userId, String productId) async {
+    try {
+      final key = '${userId}_$productId';
+      await wishlistBox.delete(key);
+      debugPrint('Product removed from wishlist for user $userId: $productId');
+    } catch (e) {
+      debugPrint('Error removing from wishlist: $e');
+      rethrow;
+    }
+  }
+
+  /// Get all wishlist items for specific user
+  List<WishlistItemHive> getUserWishlist(String userId) {
+    try {
+      return wishlistBox.values
+          .where((item) => item.userId == userId)
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting user wishlist: $e');
+      return [];
+    }
+  }
+
+  /// Check if product is in wishlist for specific user
+  bool isInWishlist(String userId, String productId) {
+    try {
+      final key = '${userId}_$productId';
+      return wishlistBox.containsKey(key);
+    } catch (e) {
+      debugPrint('Error checking wishlist: $e');
+      return false;
+    }
+  }
+
+  /// Clear wishlist for specific user
+  Future<void> clearUserWishlist(String userId) async {
+    try {
+      final userItems = getUserWishlist(userId);
+      for (var item in userItems) {
+        await wishlistBox.delete(item.hiveKey);
+      }
+      debugPrint('Wishlist cleared for user $userId');
+    } catch (e) {
+      debugPrint('Error clearing user wishlist: $e');
+      rethrow;
+    }
+  }
+
+  /// Get wishlist count for specific user
+  int getUserWishlistCount(String userId) {
+    return getUserWishlist(userId).length;
+  }
+
   /// Close all boxes
   Future<void> close() async {
     try {
       await _productsBox?.close();
       await _settingsBox?.close();
+      await _wishlistBox?.close();
       debugPrint('Hive boxes closed');
     } catch (e) {
       debugPrint('Error closing Hive boxes: $e');
