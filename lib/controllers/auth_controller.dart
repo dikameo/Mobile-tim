@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../data/local_data_service.dart';
 import '../config/supabase_config.dart';
+import 'wishlist_controller.dart';
 
 class AuthController extends GetxController {
   // Reactive variables
@@ -85,6 +86,9 @@ class AuthController extends GetxController {
             .catchError((e) {
               debugPrint('⚠️ Failed to save user to storage: $e');
             });
+
+        // Load user's wishlist after successful login
+        _loadUserWishlist();
       }
     } catch (e) {
       debugPrint('❌ Supabase login failed: $e');
@@ -158,6 +162,9 @@ class AuthController extends GetxController {
                 '⚠️ Failed to create user role (may already exist): $e',
               );
             });
+
+        // Load user's wishlist after successful registration
+        _loadUserWishlist();
       }
     } catch (e) {
       debugPrint('❌ Supabase registration failed: $e');
@@ -172,6 +179,9 @@ class AuthController extends GetxController {
     try {
       _isLoading.value = true;
       debugPrint('🚪 Logging out from Supabase...');
+
+      // Clear wishlist for logged out user
+      _clearUserWishlist();
 
       // Clear local state first (instant feedback)
       _currentUser.value = null;
@@ -245,6 +255,30 @@ class AuthController extends GetxController {
     } catch (e) {
       debugPrint('⚠️ Could not create user role (may already exist): $e');
       // Don't throw - this is a backup mechanism
+    }
+  }
+
+  // Load wishlist for current user
+  void _loadUserWishlist() {
+    try {
+      final wishlistController = Get.find<WishlistController>();
+      wishlistController.reloadWishlist();
+      debugPrint('✅ Wishlist loaded for user');
+    } catch (e) {
+      debugPrint('⚠️ Could not load wishlist: $e');
+      // Don't throw - wishlist is not critical for auth
+    }
+  }
+
+  // Clear wishlist when user logs out
+  void _clearUserWishlist() {
+    try {
+      final wishlistController = Get.find<WishlistController>();
+      wishlistController.clearWishlist();
+      debugPrint('✅ Wishlist cleared for user');
+    } catch (e) {
+      debugPrint('⚠️ Could not clear wishlist: $e');
+      // Don't throw - wishlist is not critical for auth
     }
   }
 }
