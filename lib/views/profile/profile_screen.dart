@@ -4,6 +4,8 @@ import '../../config/theme.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/theme_controller.dart';
 import '../../config/supabase_config.dart';
+import '../profile/address_screen.dart';
+import '../../bindings/addressbindings.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -128,7 +130,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.location_on_outlined,
               title: 'Alamat Saya',
               backgroundColor: theme.cardColor,
-              onTap: () {},
+              onTap: () {
+                Get.to(() => AddressPage(), binding: AddressBinding());
+              },
             ),
             _MenuTile(
               icon: Icons.payment_outlined,
