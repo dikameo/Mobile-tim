@@ -17,12 +17,11 @@ class AddressController extends GetxController {
 
   loc.Location location = loc.Location();
   StreamSubscription<List<ConnectivityResult>>? connectivitySub;
-  Timer? _debounceTimer;
 
   @override
   void onInit() {
     super.onInit();
-    getNetworkLocation();
+    getNetworkLocation(); // Start default
     _initConnectivityListener();
   }
 
@@ -30,30 +29,19 @@ class AddressController extends GetxController {
     mapController = controller;
   }
 
-  /// ============================================================
-  /// INIT CONNECTIVITY LISTENER
-  /// ============================================================
+  // ============================================================
+  // CONNECTIVITY LISTENER (FIXED)
+  // ============================================================
   void _initConnectivityListener() {
     connectivitySub = Connectivity().onConnectivityChanged.listen(
-      (List<ConnectivityResult> results) {
-        if (results.isNotEmpty) {
-          _handleConnectivityChange(results.first);
-        }
-      },
+      _handleConnectivityChange,
     );
   }
 
-  /// ============================================================
-  /// HANDLE INTERNET CHANGES (AUTO GPS / AUTO NETWORK RETRY)
-  /// ============================================================
-  void _handleConnectivityChange(ConnectivityResult status) {
-    // Cancel previous debounce timer
-    _debounceTimer?.cancel();
-
-    if (!useGPS.value) {
-      // User sedang di mode NETWORK
-      if (status == ConnectivityResult.none) {
-        // Internet hilang → fallback ke GPS
+  void _handleConnectivityChange(List<ConnectivityResult> results) {
+    // Internet hilang → fallback otomatis ke GPS jika user pakai NETWORK
+    if (results.contains(ConnectivityResult.none) || results.isEmpty) {
+      if (!useGPS.value) {
         useGPS.value = true;
         Get.snackbar(
           "Internet Hilang",
@@ -62,108 +50,95 @@ class AddressController extends GetxController {
           duration: const Duration(seconds: 2),
         );
         getGPSLocation();
+      }
+      return;
+    }
+
+    // Internet kembali → jika user MODE NETWORK, aktifkan kembali
+    if (!useGPS.value) {
+      getNetworkLocation();
+    }
+  }
+
+  // ============================================================
+  // CHECK INTERNET (FIXED)
+  // ============================================================
+  Future<bool> _checkInternet() async {
+    final results = await Connectivity().checkConnectivity();
+    return !results.contains(ConnectivityResult.none) && results.isNotEmpty;
+  }
+
+  // ============================================================
+  // TOGGLE MODE LOCATION (SAFE)
+  // ============================================================
+  Future<void> toggleLocationMode(bool gps) async {
+    useGPS.value = gps;
+
+    if (gps) {
+      getGPSLocation();
+    } else {
+      if (await _checkInternet()) {
+        getNetworkLocation();
       } else {
-        // Internet kembali → retry Network dengan debounce
-        _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-          if (!useGPS.value) {
-            Get.snackbar(
-              "Internet Kembali",
-              "Menggunakan Network Location kembali",
-              snackPosition: SnackPosition.TOP,
-              duration: const Duration(seconds: 2),
-            );
-            getNetworkLocation();
-          }
-        });
+        Get.snackbar(
+          "Tidak ada Internet",
+          "Tidak bisa masuk mode Network. Tetap pakai GPS.",
+          snackPosition: SnackPosition.TOP,
+        );
+        useGPS.value = true;
       }
     }
   }
 
-  /// Toggle GPS / Network Mode
-  void toggleLocationMode(bool gps) {
-    useGPS.value = gps;
-    gps ? getGPSLocation() : getNetworkLocation();
+  // ============================================================
+  // AUTO GET LOCATION (GPS/NETWORK)
+  // ============================================================
+  Future<void> getCurrentLocation() async {
+    if (useGPS.value) {
+      return getGPSLocation();
+    }
+    return getNetworkLocation();
   }
 
-  /// ============================================================
-  /// CHECK INTERNET
-  /// ============================================================
-  Future<bool> _checkInternet() async {
+  // ============================================================
+  // NETWORK LOCATION
+  // ============================================================
+  Future<void> getNetworkLocation() async {
+    if (loading.value) return;
+
+    loading.value = true;
+
     try {
-      final connectivityResult = await Connectivity().checkConnectivity();
-      
-      // Handle list of connectivity results
-      if (connectivityResult.isEmpty || 
-          connectivityResult.contains(ConnectivityResult.none)) {
+      if (!await _checkInternet()) {
         Get.snackbar(
           "Tidak ada koneksi",
           "Mode Network membutuhkan internet",
           snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 2),
         );
-        return false;
-      }
-      return true;
-    } catch (e) {
-      print("Error checking internet: $e");
-      return false;
-    }
-  }
-
-  /// ============================================================
-  /// GET CURRENT LOCATION AUTO
-  /// ============================================================
-  Future<void> getCurrentLocation() async {
-    if (useGPS.value) {
-      return getGPSLocation();
-    } else {
-      return getNetworkLocation();
-    }
-  }
-
-  /// ============================================================
-  /// NETWORK LOCATION
-  /// ============================================================
-  Future<void> getNetworkLocation() async {
-    if (loading.value) return; // Prevent multiple calls
-    loading.value = true;
-
-    try {
-      // Cek internet sebelum network mode
-      if (!await _checkInternet()) {
         loading.value = false;
         return;
       }
 
-      // Enable GPS service
       bool serviceEnabled = await location.serviceEnabled();
       if (!serviceEnabled) {
         serviceEnabled = await location.requestService();
         if (!serviceEnabled) {
-          Get.snackbar(
-            "Error", 
-            "Layanan lokasi tidak diaktifkan",
-            snackPosition: SnackPosition.TOP,
-          );
+          Get.snackbar("Error", "Layanan lokasi tidak aktif");
+          loading.value = false;
           return;
         }
       }
 
-      // Permission
       loc.PermissionStatus permission = await location.hasPermission();
       if (permission == loc.PermissionStatus.denied) {
         permission = await location.requestPermission();
         if (permission != loc.PermissionStatus.granted) {
-          Get.snackbar(
-            "Error", 
-            "Izin lokasi ditolak",
-            snackPosition: SnackPosition.TOP,
-          );
+          Get.snackbar("Error", "Izin lokasi ditolak");
+          loading.value = false;
           return;
         }
       }
 
-      // Network mode = low accuracy
       await location.changeSettings(
         accuracy: loc.LocationAccuracy.low,
         interval: 600,
@@ -171,13 +146,10 @@ class AddressController extends GetxController {
 
       final data = await location.getLocation().timeout(
         const Duration(seconds: 15),
-        onTimeout: () {
-          throw TimeoutException('Location request timeout');
-        },
       );
 
       if (data.latitude != null && data.longitude != null) {
-        final latLng = LatLng(data.latitude!, data.longitude!);
+        LatLng latLng = LatLng(data.latitude!, data.longitude!);
 
         _updateLocation(
           latLng,
@@ -186,16 +158,10 @@ class AddressController extends GetxController {
 
         await _getAddressFromCoordinates(latLng);
       }
-    } on TimeoutException catch (_) {
-      Get.snackbar(
-        "Error", 
-        "Timeout mendapatkan lokasi Network",
-        snackPosition: SnackPosition.TOP,
-      );
     } catch (e) {
       Get.snackbar(
-        "Error", 
-        "Gagal mendapatkan lokasi Network: ${e.toString()}",
+        "Error",
+        "Gagal mendapatkan Network Location: $e",
         snackPosition: SnackPosition.TOP,
       );
     } finally {
@@ -203,11 +169,12 @@ class AddressController extends GetxController {
     }
   }
 
-  /// ============================================================
-  /// GPS LOCATION
-  /// ============================================================
+  // ============================================================
+  // GPS LOCATION
+  // ============================================================
   Future<void> getGPSLocation() async {
-    if (loading.value) return; // Prevent multiple calls
+    if (loading.value) return;
+
     loading.value = true;
 
     try {
@@ -215,11 +182,8 @@ class AddressController extends GetxController {
       if (!serviceEnabled) {
         serviceEnabled = await location.requestService();
         if (!serviceEnabled) {
-          Get.snackbar(
-            "Error", 
-            "GPS tidak aktif",
-            snackPosition: SnackPosition.TOP,
-          );
+          Get.snackbar("Error", "GPS tidak aktif");
+          loading.value = false;
           return;
         }
       }
@@ -228,11 +192,8 @@ class AddressController extends GetxController {
       if (permission == loc.PermissionStatus.denied) {
         permission = await location.requestPermission();
         if (permission != loc.PermissionStatus.granted) {
-          Get.snackbar(
-            "Error", 
-            "Izin GPS ditolak",
-            snackPosition: SnackPosition.TOP,
-          );
+          Get.snackbar("Error", "Izin lokasi ditolak");
+          loading.value = false;
           return;
         }
       }
@@ -244,13 +205,10 @@ class AddressController extends GetxController {
 
       final data = await location.getLocation().timeout(
         const Duration(seconds: 20),
-        onTimeout: () {
-          throw TimeoutException('GPS request timeout');
-        },
       );
 
       if (data.latitude != null && data.longitude != null) {
-        final latLng = LatLng(data.latitude!, data.longitude!);
+        LatLng latLng = LatLng(data.latitude!, data.longitude!);
 
         _updateLocation(
           latLng,
@@ -259,16 +217,10 @@ class AddressController extends GetxController {
 
         await _getAddressFromCoordinates(latLng);
       }
-    } on TimeoutException catch (_) {
-      Get.snackbar(
-        "Error", 
-        "Timeout mendapatkan lokasi GPS",
-        snackPosition: SnackPosition.TOP,
-      );
     } catch (e) {
       Get.snackbar(
-        "Error", 
-        "Gagal mendapatkan lokasi GPS: ${e.toString()}",
+        "Error",
+        "Gagal mendapatkan GPS: $e",
         snackPosition: SnackPosition.TOP,
       );
     } finally {
@@ -276,200 +228,144 @@ class AddressController extends GetxController {
     }
   }
 
-  /// ============================================================
-  /// SEARCH ALAMAT
-  /// ============================================================
+  // ============================================================
+  // SEARCH ADDRESS
+  // ============================================================
   Future<void> searchAddress(String query) async {
     if (query.isEmpty) return;
 
     loading.value = true;
 
     try {
-      final result = await locationFromAddress(query).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => throw TimeoutException('Search timeout'),
-      );
+      final result = await locationFromAddress(
+        query,
+      ).timeout(const Duration(seconds: 10));
 
       if (result.isNotEmpty) {
-        final latLng = LatLng(result.first.latitude, result.first.longitude);
-        address.value = query;
+        LatLng latLng = LatLng(result.first.latitude, result.first.longitude);
 
         _updateLocation(latLng, "Lokasi berdasarkan alamat");
+
         await _getAddressFromCoordinates(latLng);
       } else {
-        Get.snackbar(
-          "Info", 
-          "Alamat tidak ditemukan",
-          snackPosition: SnackPosition.TOP,
-        );
+        Get.snackbar("Info", "Alamat tidak ditemukan");
       }
-    } on TimeoutException catch (_) {
-      Get.snackbar(
-        "Error", 
-        "Timeout mencari alamat",
-        snackPosition: SnackPosition.TOP,
-      );
     } catch (e) {
-      accuracyText.value = "Alamat tidak ditemukan";
-      Get.snackbar(
-        "Error", 
-        "Gagal mencari alamat: ${e.toString()}",
-        snackPosition: SnackPosition.TOP,
-      );
+      Get.snackbar("Error", "Gagal mencari alamat: $e");
     } finally {
       loading.value = false;
     }
   }
 
-  /// ============================================================
-  /// REVERSE GEOCODING
-  /// ============================================================
+  // ============================================================
+  // REVERSE GEOCODING
+  // ============================================================
   Future<void> getAddressFromLatLng(LatLng latLng) async {
     loading.value = true;
 
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        latLng.latitude, 
+      final placemarks = await placemarkFromCoordinates(
+        latLng.latitude,
         latLng.longitude,
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => throw TimeoutException('Geocoding timeout'),
       );
 
       if (placemarks.isNotEmpty) {
-        Placemark place = placemarks.first;
+        Placemark p = placemarks.first;
 
         address.value = [
-          place.street,
-          place.subLocality,
-          place.locality,
-          place.administrativeArea,
-          place.postalCode,
-          place.country,
-        ].where((e) => e != null && e.isNotEmpty).join(', ');
+          p.street,
+          p.subLocality,
+          p.locality,
+          p.administrativeArea,
+          p.postalCode,
+          p.country,
+        ].where((e) => e != null && e!.isNotEmpty).join(', ');
 
         _updateLocation(latLng, "Lokasi dipilih dari peta");
       }
-    } on TimeoutException catch (_) {
-      Get.snackbar(
-        "Error", 
-        "Timeout mendapatkan alamat",
-        snackPosition: SnackPosition.TOP,
-      );
     } catch (e) {
-      Get.snackbar(
-        "Error", 
-        "Gagal mendapatkan alamat: ${e.toString()}",
-        snackPosition: SnackPosition.TOP,
-      );
+      Get.snackbar("Error", "Gagal mendapatkan alamat: $e");
     } finally {
       loading.value = false;
     }
   }
 
-  /// ============================================================
-  /// PRIVATE: Get address by coordinates
-  /// ============================================================
+  // ============================================================
+  // PRIVATE: reverse geocoding otomatis
+  // ============================================================
   Future<void> _getAddressFromCoordinates(LatLng latLng) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        latLng.latitude, 
+      final placemarks = await placemarkFromCoordinates(
+        latLng.latitude,
         latLng.longitude,
-      ).timeout(const Duration(seconds: 10));
+      );
 
       if (placemarks.isNotEmpty) {
-        Placemark place = placemarks.first;
+        Placemark p = placemarks.first;
 
         address.value = [
-          place.street,
-          place.subLocality,
-          place.locality,
-          place.administrativeArea,
-          place.postalCode,
-          place.country,
-        ].where((e) => e != null && e.isNotEmpty).join(', ');
+          p.street,
+          p.subLocality,
+          p.locality,
+          p.administrativeArea,
+          p.postalCode,
+          p.country,
+        ].where((e) => e != null && e!.isNotEmpty).join(', ');
       }
     } catch (e) {
-      print("Error getting address from coordinates: $e");
+      print("Error reverse geocoding: $e");
     }
   }
 
-  /// ============================================================
-  /// UPDATE MAP + TEXTS
-  /// ============================================================
+  // ============================================================
+  // UPDATE MAP + TEXT
+  // ============================================================
   void _updateLocation(LatLng newPos, String accuracy) {
     currentLatLng.value = newPos;
     accuracyText.value = accuracy;
 
     try {
       mapController?.move(newPos, 16);
-    } catch (e) {
-      print("Error moving map: $e");
-    }
+    } catch (_) {}
   }
 
-  /// ============================================================
-  /// SAVE ADDRESS TO SUPABASE
-  /// ============================================================
+  // ============================================================
+  // SAVE ADDRESS TO SUPABASE
+  // ============================================================
   Future<bool> saveAddressToSupabase() async {
     if (address.value.isEmpty) {
-      Get.snackbar(
-        "Error", 
-        "Alamat tidak boleh kosong",
-        snackPosition: SnackPosition.TOP,
-      );
+      Get.snackbar("Error", "Alamat tidak boleh kosong");
       return false;
     }
 
     final user = SupabaseConfig.currentUser;
-    if (user == null) {
-      Get.snackbar(
-        "Error", 
-        "User tidak ditemukan",
-        snackPosition: SnackPosition.TOP,
-      );
-      return false;
-    }
+    if (user == null) return false;
 
     loading.value = true;
 
     try {
-      final data = {
+      await SupabaseConfig.client.from('user_address').upsert({
         'user_id': user.id,
         'alamat': address.value,
         'latitude': currentLatLng.value.latitude,
         'longitude': currentLatLng.value.longitude,
         'accuracy': accuracyText.value,
         'updated_at': DateTime.now().toIso8601String(),
-      };
+      });
 
-      await SupabaseConfig.client
-          .from('user_address')
-          .upsert(data, onConflict: 'user_id');
-
-      Get.snackbar(
-        "Sukses", 
-        "Alamat berhasil disimpan",
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
-      );
-
+      Get.snackbar("Sukses", "Alamat berhasil disimpan");
       return true;
     } catch (e) {
-      Get.snackbar(
-        "Error", 
-        "Gagal menyimpan alamat: ${e.toString()}",
-        snackPosition: SnackPosition.TOP,
-      );
+      Get.snackbar("Error", "Gagal menyimpan alamat: $e");
       return false;
     } finally {
       loading.value = false;
     }
   }
 
-  /// ============================================================
-  /// LOAD SAVED ADDRESS
-  /// ============================================================
+  // ============================================================
+  // LOAD SAVED ADDRESS
+  // ============================================================
   Future<void> loadSavedAddress() async {
     final user = SupabaseConfig.currentUser;
     if (user == null) return;
@@ -477,26 +373,25 @@ class AddressController extends GetxController {
     loading.value = true;
 
     try {
-      final response = await SupabaseConfig.client
+      final res = await SupabaseConfig.client
           .from('user_address')
           .select()
           .eq('user_id', user.id)
           .maybeSingle();
 
-      if (response != null) {
-        address.value = response['alamat'] ?? '';
-        accuracyText.value = response['accuracy'] ?? '';
+      if (res != null) {
+        address.value = res['alamat'] ?? '';
+        accuracyText.value = res['accuracy'] ?? '';
 
-        final lat = response['latitude'] as double?;
-        final lng = response['longitude'] as double?;
+        final lat = res['latitude'] as double?;
+        final lng = res['longitude'] as double?;
 
         if (lat != null && lng != null) {
-          final latLng = LatLng(lat, lng);
-          _updateLocation(latLng, accuracyText.value);
+          _updateLocation(LatLng(lat, lng), accuracyText.value);
         }
       }
     } catch (e) {
-      print("Failed to load saved address: $e");
+      print("Error load saved address: $e");
     } finally {
       loading.value = false;
     }
@@ -504,7 +399,6 @@ class AddressController extends GetxController {
 
   @override
   void onClose() {
-    _debounceTimer?.cancel();
     connectivitySub?.cancel();
     mapController = null;
     super.onClose();
