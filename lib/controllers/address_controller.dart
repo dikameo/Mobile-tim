@@ -13,6 +13,12 @@ class AddressController extends GetxController {
   RxString accuracyText = ''.obs;
   RxBool loading = false.obs;
   RxBool useGPS = false.obs; // FALSE = Network Mode
+
+  // Tambahan untuk menampilkan koordinat
+  RxString latitudeText = '-6.200000'.obs;
+  RxString longitudeText = '106.816666'.obs;
+  RxString coordinatesText = '-6.200000, 106.816666'.obs;
+
   MapController? mapController;
 
   final loc.Location location = loc.Location();
@@ -38,6 +44,16 @@ class AddressController extends GetxController {
 
   void setMapController(MapController controller) {
     mapController = controller;
+  }
+
+  // ============================================================
+  // UPDATE COORDINATES TEXT (helper)
+  // ============================================================
+  void _updateCoordinatesText(LatLng latLng) {
+    latitudeText.value = latLng.latitude.toStringAsFixed(6);
+    longitudeText.value = latLng.longitude.toStringAsFixed(6);
+    coordinatesText.value =
+        '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}';
   }
 
   // ============================================================
@@ -330,6 +346,7 @@ class AddressController extends GetxController {
     if (data.latitude != null && data.longitude != null) {
       final latLng = LatLng(data.latitude!, data.longitude!);
       currentLatLng.value = latLng;
+      _updateCoordinatesText(latLng);
       accuracyText.value = accuracy;
       try {
         mapController?.move(latLng, 16);
@@ -359,6 +376,7 @@ class AddressController extends GetxController {
       if (result.isNotEmpty) {
         final latLng = LatLng(result.first.latitude, result.first.longitude);
         currentLatLng.value = latLng;
+        _updateCoordinatesText(latLng);
         address.value = query;
         accuracyText.value = "Berdasarkan alamat";
         try {
@@ -450,6 +468,7 @@ class AddressController extends GetxController {
   // ============================================================
   void _updateLocation(LatLng newPos, String accuracy) {
     currentLatLng.value = newPos;
+    _updateCoordinatesText(newPos);
     accuracyText.value = accuracy;
     try {
       mapController?.move(newPos, 16);

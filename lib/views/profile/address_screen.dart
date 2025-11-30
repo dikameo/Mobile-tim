@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../controllers/address_controller.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -32,6 +33,16 @@ class _AddressPageState extends State<AddressPage> {
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  void _copyToClipboard(String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    Get.snackbar(
+      "Tersalin",
+      "$label berhasil disalin ke clipboard",
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
   }
 
   @override
@@ -164,6 +175,108 @@ class _AddressPageState extends State<AddressPage> {
                               ),
                             ],
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // ==============================
+                // 📍 COORDINATES DISPLAY
+                // ==============================
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: color.outlineVariant),
+                    ),
+                    child: Column(
+                      children: [
+                        // Latitude Row
+                        Row(
+                          children: [
+                            Icon(Icons.north, size: 16, color: color.primary),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Latitude:",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: color.outline,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                controller.latitudeText.value,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: color.onSurface,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.copy,
+                                size: 18,
+                                color: color.primary,
+                              ),
+                              onPressed: () => _copyToClipboard(
+                                controller.latitudeText.value,
+                                "Latitude",
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Divider(color: color.outlineVariant, height: 1),
+                        const SizedBox(height: 8),
+                        // Longitude Row
+                        Row(
+                          children: [
+                            Icon(Icons.east, size: 16, color: color.primary),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Longitude:",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: color.outline,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                controller.longitudeText.value,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: color.onSurface,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.copy,
+                                size: 18,
+                                color: color.primary,
+                              ),
+                              onPressed: () => _copyToClipboard(
+                                controller.longitudeText.value,
+                                "Longitude",
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
                         ),
                       ],
                     ),
