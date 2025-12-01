@@ -45,6 +45,61 @@ class _AddressPageState extends State<AddressPage> {
     );
   }
 
+  void _showSuccessNotification(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme;
+
+    // Show snackbar dengan styling yang menarik
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '✓ Berhasil Disimpan',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    controller.address.value.length > 50
+                        ? '${controller.address.value.substring(0, 50)}...'
+                        : controller.address.value,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {},
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -508,6 +563,15 @@ class _AddressPageState extends State<AddressPage> {
                                 final success = await controller
                                     .saveAddressToSupabase();
                                 if (success && mounted) {
+                                  // Tampilkan notifikasi sukses
+                                  _showSuccessNotification(context);
+
+                                  // Tunggu sebentar agar notifikasi terlihat
+                                  await Future.delayed(
+                                    const Duration(milliseconds: 500),
+                                  );
+
+                                  // Kembali ke halaman sebelumnya dengan data
                                   Get.back(
                                     result: {
                                       'address': controller.address.value,

@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:location/location.dart' as loc;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter/material.dart';
 import '../config/supabase_config.dart';
 
 class AddressController extends GetxController {
@@ -512,10 +513,15 @@ class AddressController extends GetxController {
       if (requestId != _currentRequestId) return false;
 
       Get.snackbar(
-        "Sukses",
-        "Alamat berhasil disimpan",
+        "✓ Berhasil Disimpan",
+        "Alamat Anda telah tersimpan: ${address.value.length > 50 ? '${address.value.substring(0, 50)}...' : address.value}",
         snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 3),
+        backgroundColor: Get.theme.primaryColor.withOpacity(0.9),
+        colorText: Get.theme.colorScheme.onPrimary,
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
       );
       return true;
     } catch (e) {
