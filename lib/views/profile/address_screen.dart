@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../controllers/address_controller.dart';
+import '../../widgets/ai_address_candidates.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -59,52 +60,98 @@ class _AddressPageState extends State<AddressPage> {
             Column(
               children: [
                 // ==============================
-                // 🔍 SEARCH BAR
+                // 🔍 SEARCH BAR WITH AI BUTTON
                 // ==============================
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      labelText: "Cari Alamat",
-                      hintText: "Masukkan nama jalan atau tempat",
-                      filled: true,
-                      fillColor: theme.cardColor,
-                      labelStyle: TextStyle(color: color.primary),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: color.outline),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: searchController,
+                          decoration: InputDecoration(
+                            labelText: "Cari Alamat",
+                            hintText: "Masukkan nama jalan atau tempat",
+                            filled: true,
+                            fillColor: theme.cardColor,
+                            labelStyle: TextStyle(color: color.primary),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: color.outline),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: color.outline),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: color.primary,
+                                width: 2,
+                              ),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: color.primary,
+                            ),
+                            suffixIcon: searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(Icons.clear, color: color.error),
+                                    onPressed: () {
+                                      searchController.clear();
+                                      setState(() {});
+                                    },
+                                  )
+                                : null,
+                          ),
+                          onChanged: (value) {
+                            setState(() {}); // Update suffix icon visibility
+                          },
+                          onSubmitted: (value) {
+                            if (value.isNotEmpty) {
+                              controller.searchAddress(value);
+                            }
+                          },
+                          textInputAction: TextInputAction.search,
+                        ),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: color.outline),
+                      const SizedBox(width: 8),
+                      // AI Button
+                      Tooltip(
+                        message: "Proses dengan AI",
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (searchController.text.isNotEmpty) {
+                              controller.processAddressWithAI(
+                                searchController.text,
+                              );
+                            } else {
+                              Get.snackbar(
+                                "Info",
+                                "Masukkan alamat terlebih dahulu",
+                                snackPosition: SnackPosition.TOP,
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.all(16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Icon(Icons.psychology, size: 24),
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: color.primary, width: 2),
-                      ),
-                      prefixIcon: Icon(Icons.search, color: color.primary),
-                      suffixIcon: searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.clear, color: color.error),
-                              onPressed: () {
-                                searchController.clear();
-                                setState(() {});
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      setState(() {}); // Update suffix icon visibility
-                    },
-                    onSubmitted: (value) {
-                      if (value.isNotEmpty) {
-                        controller.searchAddress(value);
-                      }
-                    },
-                    textInputAction: TextInputAction.search,
+                    ],
                   ),
                 ),
+
+                // ==============================
+                // 🤖 AI CANDIDATES WIDGET
+                // ==============================
+                const AIAddressCandidates(),
 
                 // ==============================
                 // 🎚️ LOCATION MODE SWITCH

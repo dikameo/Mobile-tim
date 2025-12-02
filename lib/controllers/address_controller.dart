@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
@@ -6,6 +8,7 @@ import 'package:location/location.dart' as loc;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../config/supabase_config.dart';
+import '../services/address_ai_service.dart';
 
 class AddressController extends GetxController {
   RxString address = ''.obs;
@@ -18,6 +21,12 @@ class AddressController extends GetxController {
   RxString latitudeText = '-6.200000'.obs;
   RxString longitudeText = '106.816666'.obs;
   RxString coordinatesText = '-6.200000, 106.816666'.obs;
+
+  // AI Address Processing
+  final AddressAIService _aiService = AddressAIService();
+  RxList<AddressCandidate> aiCandidates = <AddressCandidate>[].obs;
+  RxString aiFollowUp = ''.obs;
+  RxBool processingAI = false.obs;
 
   MapController? mapController;
 
@@ -352,6 +361,139 @@ class AddressController extends GetxController {
         mapController?.move(latLng, 16);
       } catch (e) {
         // ignore map move errors
+      }
+    }
+  }
+
+  // ============================================================
+  // AI ADDRESS NORMALIZATION (NEW)
+  // ============================================================
+  Future<void> processAddressWithAI(String userInput) async {
+    if (userInput.isEmpty || userInput.length < 5) {
+      Get.snackbar("Info", "Masukkan alamat minimal 5 karakter");
+      return;
+    }
+
+    if (processingAI.value) return;
+
+    processingAI.value = true;
+    aiCandidates.clear();
+    aiFollowUp.value = '';
+
+    try {
+      debugPrint('🤖 [AddressController] Processing with AI: $userInput');
+
+      final response = await _aiService.processAddress(userInput);
+
+      debugPrint(
+        '✅ [AddressController] AI returned ${response.candidates.length} candidates',
+      );
+
+      // Filter valid candidates (confidence >= 60%)
+      final validCandidates = response.candidates
+          .where((c) => c.confidence >= 0.6)
+          .toList();
+
+      // Update reactive variables
+      aiCandidates.value = validCandidates;
+      aiFollowUp.value = response.followUp ?? '';
+
+      // Show follow-up question if exists
+      if (response.followUp != null && response.followUp!.isNotEmpty) {
+        Get.snackbar(
+          "Klarifikasi",
+          response.followUp!,
+          duration: const Duration(seconds: 5),
+          snackPosition: SnackPosition.TOP,
+        );
+      }
+
+      // If we have valid candidates, show success
+      if (validCandidates.isNotEmpty) {
+        Get.snackbar(
+          "Berhasil",
+          "Ditemukan ${validCandidates.length} kandidat alamat berkualitas tinggi",
+          duration: const Duration(seconds: 2),
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        // No valid candidates - suggest using direct search
+        Get.snackbar(
+          "Gunakan Pencarian Biasa",
+          "AI tidak dapat memproses alamat ini dengan confidence tinggi. Tekan Enter untuk menggunakan pencarian alamat biasa.",
+          duration: const Duration(seconds: 4),
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ [AddressController] AI processing error: $e');
+      Get.snackbar(
+        "Error",
+        "Gagal memproses alamat dengan AI: $e",
+        snackPosition: SnackPosition.TOP,
+      );
+    } finally {
+      processingAI.value = false;
+    }
+  }
+
+  // ============================================================
+  // SELECT AI CANDIDATE & GEOCODE
+  // ============================================================
+  Future<void> selectAICandidate(AddressCandidate candidate) async {
+    if (loading.value) return;
+
+    loading.value = true;
+    final int requestId = ++_currentRequestId;
+
+    try {
+      debugPrint(
+        '🔍 [AddressController] Geocoding AI candidate: ${candidate.suggestedQuery}',
+      );
+
+      // Use suggested_query untuk geocoding
+      final result = await locationFromAddress(
+        candidate.suggestedQuery,
+      ).timeout(const Duration(seconds: 10));
+
+      if (requestId != _currentRequestId) return;
+
+      if (result.isNotEmpty) {
+        final latLng = LatLng(result.first.latitude, result.first.longitude);
+        currentLatLng.value = latLng;
+        _updateCoordinatesText(latLng);
+        address.value = candidate.formattedAddress;
+        accuracyText.value =
+            "AI Normalized (${(candidate.confidence * 100).toStringAsFixed(0)}% confidence)";
+
+        try {
+          mapController?.move(latLng, 16);
+        } catch (_) {}
+
+        Get.snackbar(
+          "Berhasil",
+          "Alamat dipilih dan ditemukan di peta",
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        Get.snackbar(
+          "Info",
+          "Alamat tidak ditemukan di peta. Coba kandidat lain atau ubah input.",
+          snackPosition: SnackPosition.TOP,
+        );
+      }
+    } catch (e) {
+      if (requestId == _currentRequestId) {
+        Get.snackbar("Error", "Gagal menemukan lokasi: $e");
+      }
+    } finally {
+      if (requestId == _currentRequestId) {
+        loading.value = false;
       }
     }
   }

@@ -25,8 +25,8 @@ class ProductHiveAdapter extends TypeAdapter<ProductHive> {
       rating: fields[5] as double,
       reviewCount: fields[6] as int,
       category: fields[7] as String,
-      specificationsJson: fields[8] as String,
-      description: fields[9] as String,
+      description: fields[8] as String,
+      specificationsJson: fields[9] as String,
       imageUrlsJson: fields[10] as String,
       lastSynced: fields[11] as DateTime?,
       isSynced: fields[12] as bool,
@@ -54,9 +54,9 @@ class ProductHiveAdapter extends TypeAdapter<ProductHive> {
       ..writeByte(7)
       ..write(obj.category)
       ..writeByte(8)
-      ..write(obj.specificationsJson)
-      ..writeByte(9)
       ..write(obj.description)
+      ..writeByte(9)
+      ..write(obj.specificationsJson)
       ..writeByte(10)
       ..write(obj.imageUrlsJson)
       ..writeByte(11)

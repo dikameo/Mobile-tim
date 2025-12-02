@@ -132,7 +132,7 @@ class SharedPreferencesHelper {
   // Clear all data
   Future<bool> clearAll() async {
     if (_prefs == null) {
-      print('⚠️ SharedPreferences not initialized');
+      print('SharedPreferences not initialized');
       return false;
     }
     return await _prefs!.clear();
