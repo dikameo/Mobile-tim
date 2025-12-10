@@ -41,12 +41,13 @@ class _LoginScreenState extends State<LoginScreen> {
         final isAdmin = await SupabaseConfig.isAdmin();
 
         if (isAdmin) {
-          debugPrint('✅ Admin user detected - navigating to admin products');
-          Get.offAllNamed('/admin/products');
+          debugPrint('✅ Admin user detected - navigating to home');
         } else {
           debugPrint('✅ Regular user detected - navigating to home');
-          Get.offAllNamed('/home');
         }
+
+        // Both admin and regular users go to home
+        Get.offAllNamed('/home');
       }
     } catch (e) {
       if (mounted) {

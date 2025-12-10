@@ -10,6 +10,13 @@ import '../views/history/transaction_history_screen.dart';
 import '../views/profile/profile_screen.dart';
 import '../views/wishlist/wishlist_screen.dart';
 import '../views/admin/admin_product_screen.dart';
+import '../views/admin/admin_product_list_screen.dart';
+import '../views/admin/admin_product_detail_screen.dart';
+import '../views/admin/admin_product_form_screen.dart';
+import '../views/admin/admin_order_list_screen.dart';
+import '../views/admin/admin_order_detail_screen.dart';
+import '../views/user/user_order_history_screen.dart';
+import '../views/user/user_order_detail_screen.dart';
 import '../middleware/auth_middleware.dart';
 
 class AppRoutes {
@@ -61,6 +68,48 @@ class AppRoutes {
       name: '/admin/products',
       page: () => const AdminProductScreen(),
       middlewares: [AdminMiddleware()],
+    ),
+    GetPage(
+      name: '/admin/products-list',
+      page: () => const AdminProductListScreen(),
+      middlewares: [AdminMiddleware()],
+    ),
+    GetPage(
+      name: '/admin/products/create',
+      page: () => const AdminProductFormScreen(isEdit: false),
+      middlewares: [AdminMiddleware()],
+    ),
+    GetPage(
+      name: '/admin/products/:id/edit',
+      page: () => const AdminProductFormScreen(isEdit: true),
+      middlewares: [AdminMiddleware()],
+    ),
+    GetPage(
+      name: '/admin/products/:id',
+      page: () => AdminProductDetailScreen(productId: Get.parameters['id']!),
+      middlewares: [AdminMiddleware()],
+    ),
+    GetPage(
+      name: '/admin/orders',
+      page: () => const AdminOrderListScreen(),
+      middlewares: [AdminMiddleware()],
+    ),
+    GetPage(
+      name: '/admin/orders/:id',
+      page: () => AdminOrderDetailScreen(orderId: Get.parameters['id']!),
+      middlewares: [AdminMiddleware()],
+    ),
+
+    // User order routes (require authentication)
+    GetPage(
+      name: '/orders',
+      page: () => const UserOrderHistoryScreen(),
+      middlewares: [AuthMiddleware()],
+    ),
+    GetPage(
+      name: '/orders/:id',
+      page: () => UserOrderDetailScreen(orderId: Get.parameters['id']!),
+      middlewares: [AuthMiddleware()],
     ),
   ];
 }

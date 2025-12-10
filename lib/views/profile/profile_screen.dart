@@ -4,8 +4,6 @@ import '../../config/theme.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/theme_controller.dart';
 import '../../config/supabase_config.dart';
-import '../profile/address_screen.dart';
-import '../../bindings/addressbindings.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -122,6 +120,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 8),
 
+            // User Orders Section
+            _MenuTile(
+              icon: Icons.shopping_bag_outlined,
+              title: 'Riwayat Pesanan',
+              subtitle: 'Lihat pesanan dan status pengiriman',
+              backgroundColor: theme.cardColor,
+              onTap: () => Get.toNamed('/orders'),
+            ),
+
+            const SizedBox(height: 8),
+
             // Theme Toggle - Menggunakan SharedPreferences
             _ThemeToggleTile(),
 
@@ -130,9 +139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.location_on_outlined,
               title: 'Alamat Saya',
               backgroundColor: theme.cardColor,
-              onTap: () {
-                Get.to(() => AddressPage(), binding: AddressBinding());
-              },
+              onTap: () {},
             ),
             _MenuTile(
               icon: Icons.payment_outlined,
@@ -219,13 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: 'Manage Orders',
                     subtitle: 'Kelola pesanan customer',
                     backgroundColor: theme.cardColor,
-                    onTap: () {
-                      Get.snackbar(
-                        'Coming Soon',
-                        'Fitur manage orders sedang dalam pengembangan',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
+                    onTap: () => Get.toNamed('/admin/orders'),
                   ),
                   const SizedBox(height: 8),
                 ],
@@ -294,10 +295,7 @@ class _ThemeToggleTile extends StatelessWidget {
             color: theme.iconTheme.color,
           ),
           title: Text('Dark Mode', style: theme.textTheme.titleMedium),
-          subtitle: Text(
-            'Theme',
-            style: theme.textTheme.bodySmall,
-          ),
+          subtitle: Text('Theme', style: theme.textTheme.bodySmall),
           value: themeController.isDark,
           activeColor: AppTheme.secondaryOrange,
           onChanged: (value) async {

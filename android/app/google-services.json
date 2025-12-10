@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "486656229550",
+    "project_id": "roasty-6c0bc",
+    "storage_bucket": "roasty-6c0bc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:486656229550:android:fb5209e6791d6539992d3f",
+        "android_client_info": {
+          "package_name": "com.example.roaster_apps"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmbu84J3pH7ecAaGk4Nbjaw0jG3rQP9ac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

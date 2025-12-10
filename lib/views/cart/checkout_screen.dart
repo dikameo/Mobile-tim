@@ -50,7 +50,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     // Simulate payment processing
     await Future.delayed(const Duration(seconds: 2));
 
-    // Create order
+    // Create order with processing status (payment confirmed)
     final selectedItems = cartProvider.items
         .where((item) => item.isSelected)
         .toList();
@@ -63,7 +63,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           priceAtPurchase: item.product.price,
         );
       }).toList(),
-      status: OrderStatus.pendingPayment,
+      status: OrderStatus.processing, // Changed from pendingPayment
       subtotal: cartProvider.subtotal,
       shippingCost: cartProvider.shippingCost,
       total: cartProvider.total,
@@ -96,7 +96,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 return Column(
                   children: [
                     Text(
-                      'Order Placed Successfully!',
+                      'Payment Successful!',
                       style: theme.textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
@@ -107,7 +107,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Please complete payment within 24 hours',
+                      'Your order is now being processed',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.textTheme.bodyMedium?.color?.withOpacity(
                           0.6,

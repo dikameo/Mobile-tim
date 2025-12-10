@@ -55,9 +55,7 @@ class AddressController extends GetxController {
     mapController = controller;
   }
 
-  // ============================================================
   // UPDATE COORDINATES TEXT (helper)
-  // ============================================================
   void _updateCoordinatesText(LatLng latLng) {
     latitudeText.value = latLng.latitude.toStringAsFixed(6);
     longitudeText.value = latLng.longitude.toStringAsFixed(6);
@@ -65,18 +63,14 @@ class AddressController extends GetxController {
         '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}';
   }
 
-  // ============================================================
   // START DEFAULT LOCATION (non-blocking, protects against overlap)
-  // ============================================================
   void _safeStartDefaultLocation() {
     // Start with network mode but don't block UI
     useGPS.value = false;
     getNetworkLocation();
   }
 
-  // ============================================================
   // CONNECTIVITY LISTENER (FIXED + anti-flap)
-  // ============================================================
   void _initConnectivityListener() {
     connectivitySub = Connectivity().onConnectivityChanged.listen((
       List<ConnectivityResult> results,
@@ -116,9 +110,6 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
-  // SIMPLE INTERNET CHECK (Connectivity only - lightweight)
-  // ============================================================
   Future<bool> _checkInternet() async {
     try {
       final results = await Connectivity().checkConnectivity();
@@ -129,9 +120,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // TOGGLE MODE LOCATION (SAFE)
-  // ============================================================
   Future<void> toggleLocationMode(bool gps) async {
     // Prevent quick repeated toggles
     if (loading.value) {
@@ -157,9 +146,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // GET CURRENT LOCATION (delegator)
-  // ============================================================
   Future<void> getCurrentLocation() async {
     if (useGPS.value) {
       await getGPSLocation();
@@ -168,10 +155,8 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // HELPER: safe call to underlying location.getLocation with timeout
   // returns loc.LocationData? (null if failed)
-  // ============================================================
   Future<loc.LocationData?> _safeRequestLocation({
     required loc.LocationAccuracy accuracy,
     required Duration timeout,
@@ -208,9 +193,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // NETWORK LOCATION (faster, lower accuracy, shorter timeout)
-  // ============================================================
   Future<void> getNetworkLocation() async {
     // Prevent overlapping calls
     if (loading.value) return;
@@ -285,9 +268,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // GPS LOCATION (higher accuracy, longer timeout but bounded)
-  // ============================================================
   Future<void> getGPSLocation() async {
     if (loading.value) return;
     loading.value = true;
@@ -348,9 +329,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // APPLY location data to reactive state and map
-  // ============================================================
   void _applyLocationData(loc.LocationData data, String accuracy) {
     if (data.latitude != null && data.longitude != null) {
       final latLng = LatLng(data.latitude!, data.longitude!);
@@ -365,9 +344,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // AI ADDRESS NORMALIZATION (NEW)
-  // ============================================================
   Future<void> processAddressWithAI(String userInput) async {
     if (userInput.isEmpty || userInput.length < 5) {
       Get.snackbar("Info", "Masukkan alamat minimal 5 karakter");
@@ -441,9 +418,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // SELECT AI CANDIDATE & GEOCODE
-  // ============================================================
   Future<void> selectAICandidate(AddressCandidate candidate) async {
     if (loading.value) return;
 
@@ -498,9 +473,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // SEARCH ADDRESS (geocoding) - kept with timeout
-  // ============================================================
   Future<void> searchAddress(String query) async {
     if (query.isEmpty) return;
     if (loading.value) return;
@@ -539,9 +512,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // REVERSE GEOCODING
-  // ============================================================
   Future<void> getAddressFromLatLng(LatLng latLng) async {
     if (loading.value) return;
     loading.value = true;
@@ -578,9 +549,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // PRIVATE: reverse geocoding otomatis (no snackbar)
-  // ============================================================
   Future<void> _getAddressFromCoordinates(LatLng latLng) async {
     try {
       final placemarks = await placemarkFromCoordinates(
@@ -605,9 +574,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // UPDATE MAP + TEXT (explicit)
-  // ============================================================
   void _updateLocation(LatLng newPos, String accuracy) {
     currentLatLng.value = newPos;
     _updateCoordinatesText(newPos);
@@ -617,9 +584,7 @@ class AddressController extends GetxController {
     } catch (_) {}
   }
 
-  // ============================================================
   // SAVE ADDRESS TO SUPABASE
-  // ============================================================
   Future<bool> saveAddressToSupabase() async {
     if (address.value.isEmpty) {
       Get.snackbar("Error", "Alamat tidak boleh kosong");
@@ -672,9 +637,7 @@ class AddressController extends GetxController {
     }
   }
 
-  // ============================================================
   // LOAD SAVED ADDRESS
-  // ============================================================
   Future<void> loadSavedAddress() async {
     final user = SupabaseConfig.currentUser;
     if (user == null) return;
