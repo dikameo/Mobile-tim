@@ -130,8 +130,7 @@ class NotificationService {
       description: 'Notifications for order status and promos',
       importance: Importance.high,
       playSound: true,
-      // Gunakan default sound dulu (custom sound optional)
-      // sound: RawResourceAndroidNotificationSound('notification_sound'),
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
     );
 
     await _localNotifications
@@ -269,7 +268,7 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
       // Heads-up notification
       visibility: NotificationVisibility.public,
       fullScreenIntent: true,
@@ -400,10 +399,11 @@ class NotificationService {
     required String title,
     required String body,
     String? payload,
+    String sound = 'notification_sound', // default sound
   }) async {
     debugPrint('🔔 Showing maintenance notification: $title');
 
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       'roasty_orders',
       'Roasty Orders',
       channelDescription: 'Notifications for order status and promos',
@@ -411,9 +411,20 @@ class NotificationService {
       priority: Priority.high,
       showWhen: true,
       icon: '@mipmap/ic_launcher',
+      sound: RawResourceAndroidNotificationSound(sound),
     );
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
+    final iosDetails = DarwinNotificationDetails(
+      sound: '$sound.aiff',
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
 
     await _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000, // unique ID

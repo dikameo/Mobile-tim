@@ -145,6 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   title: '🔧 Fitur dalam Pengembangan',
                   body:
                       'Alamat Saya sedang dalam maintenance. Mohon maaf atas ketidaknyamanannya.',
+                  sound: 'alamat',
                 );
               },
             ),
@@ -157,6 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   title: '🔧 Fitur dalam Pengembangan',
                   body:
                       'Metode Pembayaran sedang dalam maintenance. Mohon maaf atas ketidaknyamanannya.',
+                  sound: 'metodepembayaran',
                 );
               },
             ),
@@ -169,6 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   title: '🔧 Fitur dalam Pengembangan',
                   body:
                       'Ulasan Saya sedang dalam maintenance. Mohon maaf atas ketidaknyamanannya.',
+                  sound: 'ulasansaya',
                 );
               },
             ),

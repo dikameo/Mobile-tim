@@ -110,6 +110,7 @@ flutter:
   assets:
     - assets/images/
     - assets/logo/
+    - assets/audio/
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,0 +1,19 @@
+NOTIFICATION SOUND INSTRUCTIONS
+
+To add your custom notification sound:
+
+1. For Android: Place your sound file as 'notification_sound.mp3' in this folder
+2. For iOS: Place your sound file as 'notification_sound.aiff' in this folder
+
+Supported formats:
+- Android: MP3, WAV, OGG (recommended: notification_sound.mp3)
+- iOS: AIFF,CAF,WAV,MP3 (recommended: notification_sound.aiff)
+
+Important notes for Android:
+- File names must be lowercase with underscores
+- Maximum file size: 1MB
+- Duration: Less than 5 seconds recommended
+
+Example files to add:
+- notification_sound.mp3 (for Android)
+- notification_sound.aiff (for iOS)
