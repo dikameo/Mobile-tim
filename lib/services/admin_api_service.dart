@@ -293,17 +293,31 @@ class AdminApiService {
         data['tracking_number'] = trackingNumber;
       }
 
+      // Update order tanpa join profiles (lebih simple & reliable)
       final response = await _client
           .from('orders')
           .update(data)
           .eq('id', id)
-          .select('*, profiles!orders_user_id_fkey(email, name)')
+          .select()
           .single();
 
-      // Merge profile data
-      if (response['profiles'] != null && response['profiles'] is Map) {
-        response['user_email'] = response['profiles']['email'];
-        response['user_name'] = response['profiles']['name'];
+      // Fetch user profile separately jika diperlukan
+      if (response['user_id'] != null) {
+        try {
+          final profile = await _client
+              .from('profiles')
+              .select('email, name')
+              .eq('id', response['user_id'])
+              .maybeSingle();
+
+          if (profile != null) {
+            response['user_email'] = profile['email'];
+            response['user_name'] = profile['name'];
+          }
+        } catch (e) {
+          debugPrint('⚠️ Could not fetch user profile: $e');
+          // Continue without user info
+        }
       }
 
       return AdminOrder.fromJson(response);
@@ -321,9 +335,8 @@ class AdminApiService {
     DateTime? endDate,
   }) async {
     try {
-      var query = _client
-          .from('orders')
-          .select('*, profiles!orders_user_id_fkey(email, name)');
+      // Query tanpa join (lebih reliable)
+      var query = _client.from('orders').select();
 
       if (status != null) {
         query = query.eq('status', status.name);
@@ -338,13 +351,28 @@ class AdminApiService {
       }
 
       final response = await query;
-      final orders = (response as List).map((json) {
-        if (json['profiles'] != null && json['profiles'] is Map) {
-          json['user_email'] = json['profiles']['email'];
-          json['user_name'] = json['profiles']['name'];
-        }
-        return AdminOrder.fromJson(json);
-      }).toList();
+      final orders = await Future.wait(
+        (response as List).map((json) async {
+          // Fetch user profile separately
+          if (json['user_id'] != null) {
+            try {
+              final profile = await _client
+                  .from('profiles')
+                  .select('email, name')
+                  .eq('id', json['user_id'])
+                  .maybeSingle();
+
+              if (profile != null) {
+                json['user_email'] = profile['email'];
+                json['user_name'] = profile['name'];
+              }
+            } catch (e) {
+              debugPrint('⚠️ Could not fetch user profile: $e');
+            }
+          }
+          return AdminOrder.fromJson(json);
+        }),
+      );
 
       // Generate CSV
       final buffer = StringBuffer();

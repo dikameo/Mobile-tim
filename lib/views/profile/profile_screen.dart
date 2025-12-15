@@ -184,6 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   title: '🔧 Fitur dalam Pengembangan',
                   body:
                       'Pengaturan Notifikasi sedang dalam maintenance. Mohon maaf atas ketidaknyamanannya.',
+                  sound: 'notification_sound',
                 );
               },
             ),

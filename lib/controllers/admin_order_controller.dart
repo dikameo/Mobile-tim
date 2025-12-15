@@ -80,6 +80,14 @@ class AdminOrderController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
+
+      print('🔔 ========================================');
+      print('🔔 ADMIN UPDATE ORDER STATUS');
+      print('🔔 Order ID: $id');
+      print('🔔 New Status: ${newStatus.name}');
+      print('🔔 Tracking Number: ${trackingNumber ?? "N/A"}');
+      print('🔔 ========================================');
+
       await _apiService.updateOrderStatus(
         id,
         newStatus,
@@ -93,12 +101,16 @@ class AdminOrderController extends GetxController {
         colorText: Colors.white,
       );
 
+      print('✅ Order status updated in database');
+
       // 🔔 TRIGGER NOTIFICATION OTOMATIS!
-      NotificationTriggerService().afterOrderStatusUpdate(id);
+      print('🔔 Triggering notification to user...');
+      await NotificationTriggerService().afterOrderStatusUpdate(id);
 
       loadOrders(refresh: true);
       return true;
     } catch (e) {
+      print('❌ Error in updateOrderStatus: $e');
       Get.snackbar(
         'Error',
         'Failed to update status: $e',

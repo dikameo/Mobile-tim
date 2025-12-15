@@ -22,21 +22,35 @@ class NotificationTriggerService {
 
   Future<void> triggerNotifications() async {
     try {
+      debugPrint('🔔 ========================================');
       debugPrint('🔔 Triggering notification Edge Function...');
+      debugPrint('🔔 URL: $_edgeFunctionUrl');
 
       final supabase = SupabaseConfig.client;
+
+      debugPrint('🔔 Invoking Edge Function...');
       final response = await supabase.functions.invoke(
         'send-push-notifications',
       );
+
+      debugPrint('🔔 Edge Function Response Status: ${response.status}');
+      debugPrint('🔔 Edge Function Response Data: ${response.data}');
 
       if (response.status == 200) {
         debugPrint('✅ Notifications triggered successfully');
         debugPrint('   Response: ${response.data}');
       } else {
         debugPrint('⚠️ Edge Function returned status ${response.status}');
+        debugPrint('⚠️ Response body: ${response.data}');
       }
-    } catch (e) {
-      debugPrint('❌ Failed to trigger notifications: $e');
+
+      debugPrint('🔔 ========================================');
+    } catch (e, stackTrace) {
+      debugPrint('❌ ========================================');
+      debugPrint('❌ Failed to trigger notifications');
+      debugPrint('❌ Error: $e');
+      debugPrint('❌ Stack trace: $stackTrace');
+      debugPrint('❌ ========================================');
     }
   }
 
@@ -46,8 +60,15 @@ class NotificationTriggerService {
 
   /// Trigger setelah admin update order status
   Future<void> afterOrderStatusUpdate(String orderId) async {
-    debugPrint('🔔 Admin updated order $orderId - triggering notification');
+    debugPrint('🔔 ========================================');
+    debugPrint('🔔 AFTER ORDER STATUS UPDATE');
+    debugPrint('🔔 Order ID: $orderId');
+    debugPrint('🔔 Admin updated order - triggering notification');
+    debugPrint('🔔 ========================================');
+
     await triggerNotifications();
+
+    debugPrint('🔔 Notification trigger completed for order $orderId');
   }
 
   /// Trigger setelah admin update product

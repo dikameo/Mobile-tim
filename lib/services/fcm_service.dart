@@ -152,6 +152,9 @@ class NotificationService {
     // Show local notification (heads-up)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('🔔 [FOREGROUND] Message received: ${message.messageId}');
+      debugPrint(
+        '🔔 [FOREGROUND] Notification: ${message.notification?.title} - ${message.notification?.body}',
+      );
       debugPrint('🔔 [FOREGROUND] Data: ${message.data}');
 
       // EKSPERIMEN 1: Foreground notification dengan custom sound
@@ -258,8 +261,15 @@ class NotificationService {
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final data = message.data;
-    final title = data['title'] ?? 'Roasty';
-    final body = data['body'] ?? 'You have a new notification';
+
+    // Firebase Console mengirim via message.notification
+    // Edge Function mengirim via message.data
+    // Prioritas: notification.title/body dulu, fallback ke data['title']/data['body']
+    final title = message.notification?.title ?? data['title'] ?? 'Roasty';
+    final body =
+        message.notification?.body ??
+        data['body'] ??
+        'You have a new notification';
 
     const androidDetails = AndroidNotificationDetails(
       'roasty_orders',
@@ -391,49 +401,92 @@ class NotificationService {
   // =====================================================
   // SHOW LOCAL NOTIFICATION (Manual)
   // Untuk testing atau notifikasi maintenance
+  // OFFLINE-SAFE: Tidak perlu koneksi internet
   // =====================================================
 
   /// Show a local notification manually
   /// Digunakan untuk notifikasi maintenance atau testing
+  /// OFFLINE-SAFE: Bekerja tanpa koneksi internet
   Future<void> showMaintenanceNotification({
     required String title,
     required String body,
     String? payload,
     String sound = 'notification_sound', // default sound
   }) async {
-    debugPrint('🔔 Showing maintenance notification: $title');
+    try {
+      debugPrint('🔔 Showing maintenance notification: $title');
+      debugPrint('🔔 Sound: $sound');
 
-    final androidDetails = AndroidNotificationDetails(
-      'roasty_orders',
-      'Roasty Orders',
-      channelDescription: 'Notifications for order status and promos',
-      importance: Importance.high,
-      priority: Priority.high,
-      showWhen: true,
-      icon: '@mipmap/ic_launcher',
-      sound: RawResourceAndroidNotificationSound(sound),
-    );
+      final androidDetails = AndroidNotificationDetails(
+        'roasty_orders',
+        'Roasty Orders',
+        channelDescription: 'Notifications for order status and promos',
+        importance: Importance.high,
+        priority: Priority.high,
+        showWhen: true,
+        icon: '@mipmap/ic_launcher',
+        playSound: true,
+        enableVibration: true,
+        sound: RawResourceAndroidNotificationSound(sound),
+      );
 
-    final iosDetails = DarwinNotificationDetails(
-      sound: '$sound.aiff',
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
+      final iosDetails = DarwinNotificationDetails(
+        sound: '$sound.aiff',
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
 
-    final notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
+      final notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
 
-    await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000, // unique ID
-      title,
-      body,
-      notificationDetails,
-      payload: payload,
-    );
+      await _localNotifications.show(
+        DateTime.now().millisecondsSinceEpoch ~/ 1000, // unique ID
+        title,
+        body,
+        notificationDetails,
+        payload: payload,
+      );
 
-    debugPrint('✅ Maintenance notification shown');
+      debugPrint('✅ Maintenance notification shown successfully');
+    } catch (e) {
+      debugPrint('❌ Error showing notification: $e');
+
+      // Fallback: Try showing without custom sound
+      try {
+        debugPrint('🔄 Retrying without custom sound...');
+
+        const androidDetailsFallback = AndroidNotificationDetails(
+          'roasty_orders',
+          'Roasty Orders',
+          channelDescription: 'Notifications for order status and promos',
+          importance: Importance.high,
+          priority: Priority.high,
+          showWhen: true,
+          icon: '@mipmap/ic_launcher',
+          playSound: true,
+          enableVibration: true,
+        );
+
+        const notificationDetailsFallback = NotificationDetails(
+          android: androidDetailsFallback,
+        );
+
+        await _localNotifications.show(
+          DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          title,
+          body,
+          notificationDetailsFallback,
+          payload: payload,
+        );
+
+        debugPrint('✅ Notification shown (fallback mode - default sound)');
+      } catch (fallbackError) {
+        debugPrint('❌ Fallback notification also failed: $fallbackError');
+        debugPrint('⚠️ Please check notification permissions');
+      }
+    }
   }
 }

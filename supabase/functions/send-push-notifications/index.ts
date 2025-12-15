@@ -152,10 +152,6 @@ async function sendFCM(
   }
 }
 
-// ==================================================
-// SIMPLIFIED VERSION - TESTING PURPOSE
-// Tidak perlu FCM dulu, bisa test dengan dummy send
-// ==================================================
 
 serve(async (req) => {
   try {

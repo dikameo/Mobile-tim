@@ -1,32 +1,86 @@
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/order.dart';
 import '../config/supabase_config.dart';
 
 class OrderController extends GetxController {
-  List<Order> _orders = [];
-  bool _isLoading = false;
+  final RxList<Order> _orders = <Order>[].obs;
+  final RxBool _isLoading = false.obs;
+  RealtimeChannel? _ordersSubscription;
 
   List<Order> get orders => _orders;
-  bool get isLoading => _isLoading;
+  bool get isLoading => _isLoading.value;
 
   @override
   void onInit() {
     super.onInit();
     loadOrders();
+    _setupRealtimeSubscription();
+  }
+
+  @override
+  void onClose() {
+    _ordersSubscription?.unsubscribe();
+    super.onClose();
+  }
+
+  // Setup real-time subscription untuk auto-update saat admin mengubah status
+  void _setupRealtimeSubscription() {
+    final userId = SupabaseConfig.currentUser?.id;
+    if (userId == null) return;
+
+    _ordersSubscription = SupabaseConfig.client
+        .channel('user_orders_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'orders',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (payload) {
+            print('🔔 Order updated in real-time: ${payload.newRecord}');
+            _handleOrderUpdate(payload.newRecord);
+          },
+        )
+        .subscribe();
+
+    print('✅ Real-time subscription setup for user orders');
+  }
+
+  // Handle order update dari real-time subscription
+  void _handleOrderUpdate(Map<String, dynamic> updatedData) {
+    try {
+      final updatedOrder = Order.fromJson(updatedData);
+      final index = _orders.indexWhere(
+        (o) => o.orderId == updatedOrder.orderId,
+      );
+
+      if (index != -1) {
+        _orders[index] = updatedOrder;
+        print('✅ Order ${updatedOrder.orderId} updated in local list');
+      } else {
+        // Order baru, tambahkan ke list
+        _orders.insert(0, updatedOrder);
+        print('✅ New order ${updatedOrder.orderId} added to list');
+      }
+    } catch (e) {
+      print('❌ Failed to handle order update: $e');
+    }
   }
 
   // Load orders from Supabase
   Future<void> loadOrders() async {
     try {
-      _isLoading = true;
-      update();
+      _isLoading.value = true;
 
       final userId = SupabaseConfig.currentUser?.id;
       if (userId == null) {
         print('⚠️ No user logged in, cannot load orders');
-        _orders = [];
-        _isLoading = false;
-        update();
+        _orders.value = [];
+        _isLoading.value = false;
         return;
       }
 
@@ -36,16 +90,16 @@ class OrderController extends GetxController {
           .eq('user_id', userId)
           .order('created_at', ascending: false);
 
-      _orders = (response as List).map((json) => Order.fromJson(json)).toList();
+      _orders.value = (response as List)
+          .map((json) => Order.fromJson(json))
+          .toList();
 
       print('✅ Loaded ${_orders.length} orders from Supabase');
-      _isLoading = false;
-      update();
+      _isLoading.value = false;
     } catch (e) {
       print('❌ Failed to load orders: $e');
-      _orders = [];
-      _isLoading = false;
-      update();
+      _orders.value = [];
+      _isLoading.value = false;
     }
   }
 
@@ -85,7 +139,6 @@ class OrderController extends GetxController {
 
       // Add to local list
       _orders.insert(0, order);
-      update();
       print('✅ Order created successfully');
     } catch (e) {
       print('❌ Failed to create order: $e');

@@ -41,7 +41,20 @@ class _UserOrderDetailScreenState extends State<UserOrderDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Order Detail')),
+      appBar: AppBar(
+        title: const Text('Order Detail'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                orderFuture = controller.getOrderDetail(widget.orderId);
+              });
+            },
+            tooltip: 'Refresh',
+          ),
+        ],
+      ),
       body: FutureBuilder<AdminOrder?>(
         future: orderFuture,
         builder: (context, snapshot) {
@@ -67,19 +80,28 @@ class _UserOrderDetailScreenState extends State<UserOrderDetailScreen> {
           }
 
           final order = snapshot.data!;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildStatusSection(order),
-                const SizedBox(height: 16),
-                _buildOrderInfo(order),
-                const SizedBox(height: 16),
-                _buildItemsList(order),
-                const SizedBox(height: 16),
-                _buildPriceSummary(order),
-              ],
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {
+                orderFuture = controller.getOrderDetail(widget.orderId);
+              });
+              await orderFuture;
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildStatusSection(order),
+                  const SizedBox(height: 16),
+                  _buildOrderInfo(order),
+                  const SizedBox(height: 16),
+                  _buildItemsList(order),
+                  const SizedBox(height: 16),
+                  _buildPriceSummary(order),
+                ],
+              ),
             ),
           );
         },
