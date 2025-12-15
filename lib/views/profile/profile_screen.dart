@@ -4,6 +4,7 @@ import '../../config/theme.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/theme_controller.dart';
 import '../../config/supabase_config.dart';
+import '../../services/fcm_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -139,25 +140,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.location_on_outlined,
               title: 'Alamat Saya',
               backgroundColor: theme.cardColor,
-              onTap: () {},
+              onTap: () {
+                NotificationService().showMaintenanceNotification(
+                  title: '🔧 Fitur dalam Pengembangan',
+                  body:
+                      'Alamat Saya sedang dalam maintenance. Mohon maaf atas ketidaknyamanannya.',
+                );
+              },
             ),
             _MenuTile(
               icon: Icons.payment_outlined,
               title: 'Metode Pembayaran',
               backgroundColor: theme.cardColor,
-              onTap: () {},
+              onTap: () {
+                NotificationService().showMaintenanceNotification(
+                  title: '🔧 Fitur dalam Pengembangan',
+                  body:
+                      'Metode Pembayaran sedang dalam maintenance. Mohon maaf atas ketidaknyamanannya.',
+                );
+              },
             ),
             _MenuTile(
               icon: Icons.rate_review_outlined,
               title: 'Ulasan Saya',
               backgroundColor: theme.cardColor,
-              onTap: () {},
+              onTap: () {
+                NotificationService().showMaintenanceNotification(
+                  title: '🔧 Fitur dalam Pengembangan',
+                  body:
+                      'Ulasan Saya sedang dalam maintenance. Mohon maaf atas ketidaknyamanannya.',
+                );
+              },
             ),
             _MenuTile(
               icon: Icons.notifications_outlined,
               title: 'Pengaturan Notifikasi',
               backgroundColor: theme.cardColor,
-              onTap: () {},
+              onTap: () {
+                NotificationService().showMaintenanceNotification(
+                  title: '🔧 Fitur dalam Pengembangan',
+                  body:
+                      'Pengaturan Notifikasi sedang dalam maintenance. Mohon maaf atas ketidaknyamanannya.',
+                );
+              },
             ),
             const SizedBox(height: 8),
 

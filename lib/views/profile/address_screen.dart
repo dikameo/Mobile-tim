@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../controllers/address_controller.dart';
 import '../../widgets/ai_address_candidates.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 
 class AddressPage extends StatefulWidget {
   const AddressPage({Key? key}) : super(key: key);

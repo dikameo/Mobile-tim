@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../models/admin_order.dart';
 import '../services/admin_api_service.dart';
+import '../services/notification_trigger_service.dart';
 
 class AdminOrderController extends GetxController {
   final AdminApiService _apiService = AdminApiService();
@@ -91,6 +92,9 @@ class AdminOrderController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
+
+      // 🔔 TRIGGER NOTIFICATION OTOMATIS!
+      NotificationTriggerService().afterOrderStatusUpdate(id);
 
       loadOrders(refresh: true);
       return true;

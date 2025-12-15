@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:roaster_apps/views/user/user_order_history_screen.dart';
-import 'package:roaster_apps/controllers/user_order_controller.dart';
-import 'package:roaster_apps/models/admin_order.dart';
+import 'package:roasty/views/user/user_order_history_screen.dart';
+import 'package:roasty/controllers/user_order_controller.dart';
+import 'package:roasty/models/admin_order.dart';
 
 void main() {
   group('UserOrderHistoryScreen Widget Tests', () {

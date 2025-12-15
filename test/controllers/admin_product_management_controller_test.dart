@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:roaster_apps/controllers/admin_product_management_controller.dart';
-import 'package:roaster_apps/models/admin_product.dart';
+import 'package:roasty/controllers/admin_product_management_controller.dart';
+import 'package:roasty/models/admin_product.dart';
 
 void main() {
   group('AdminProductManagementController', () {

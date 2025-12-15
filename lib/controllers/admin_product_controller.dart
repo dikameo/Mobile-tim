@@ -6,6 +6,7 @@ import '../models/product.dart';
 import '../models/product_hive.dart';
 import '../repositories/product_repository.dart';
 import '../services/supabase_service.dart';
+import '../services/notification_trigger_service.dart';
 import 'sync_controller.dart';
 
 class AdminProductController extends GetxController {
@@ -234,6 +235,9 @@ class AdminProductController extends GetxController {
         duration: const Duration(seconds: 2),
       );
 
+      // 🔔 TRIGGER NOTIFICATION OTOMATIS!
+      NotificationTriggerService().afterProductCreate(productId);
+
       Get.back(); // Close form
       _clearForm();
     } catch (e) {
@@ -302,6 +306,9 @@ class AdminProductController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 2),
       );
+
+      // 🔔 TRIGGER NOTIFICATION OTOMATIS!
+      NotificationTriggerService().afterProductUpdate(productId);
 
       Get.back(); // Close form
       _clearForm();

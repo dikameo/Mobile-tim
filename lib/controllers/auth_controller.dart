@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../data/local_data_service.dart';
 import '../config/supabase_config.dart';
+import '../services/fcm_service.dart';
 
 class AuthController extends GetxController {
   // Reactive variables
@@ -85,6 +86,13 @@ class AuthController extends GetxController {
             .catchError((e) {
               debugPrint('⚠️ Failed to save user to storage: $e');
             });
+
+        // 🔔 Save FCM token setelah login
+        try {
+          await NotificationService().saveTokenAfterLogin();
+        } catch (e) {
+          debugPrint('⚠️ Failed to save FCM token: $e');
+        }
       }
     } catch (e) {
       debugPrint('❌ Supabase login failed: $e');

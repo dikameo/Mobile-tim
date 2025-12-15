@@ -288,13 +288,9 @@ class AdminApiService {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      // Add tracking number if provided (required for shipped status)
+      // Add tracking number if provided (optional untuk admin)
       if (trackingNumber != null && trackingNumber.isNotEmpty) {
         data['tracking_number'] = trackingNumber;
-      } else if (newStatus == OrderStatus.shipped) {
-        throw Exception(
-          'Tracking number is required when changing status to shipped',
-        );
       }
 
       final response = await _client

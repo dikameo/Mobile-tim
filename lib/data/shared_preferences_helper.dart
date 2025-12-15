@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 
@@ -9,10 +10,6 @@ class SharedPreferencesHelper {
   static const String _keyUserId = 'user_id';
   static const String _keyUserPhotoUrl = 'user_photo_url';
   static const String _keyOnboardingCompleted = 'onboarding_completed';
-
-  // Cart-related keys
-  static const String _keyCartItems = 'cart_items';
-  static const String _keyWishlistItems = 'wishlist_items';
 
   // API settings
   static const String _keyUseDio = 'use_dio';
@@ -35,7 +32,7 @@ class SharedPreferencesHelper {
   // User authentication methods
   Future<bool> saveUser(User user) async {
     if (_prefs == null) {
-      print('⚠️ SharedPreferences not initialized, initializing now...');
+      debugPrint('⚠️ SharedPreferences not initialized, initializing now...');
       await init();
     }
 
@@ -51,7 +48,7 @@ class SharedPreferencesHelper {
 
   User? getUser() {
     if (_prefs == null) {
-      print('⚠️ SharedPreferences not initialized');
+      debugPrint('⚠️ SharedPreferences not initialized');
       return null;
     }
 
@@ -81,7 +78,7 @@ class SharedPreferencesHelper {
 
   Future<bool> removeUser() async {
     if (_prefs == null) {
-      print('⚠️ SharedPreferences not initialized');
+      debugPrint('⚠️ SharedPreferences not initialized');
       return false;
     }
     return await _prefs!.remove(_keyUserId) &&
@@ -132,7 +129,7 @@ class SharedPreferencesHelper {
   // Clear all data
   Future<bool> clearAll() async {
     if (_prefs == null) {
-      print('SharedPreferences not initialized');
+      debugPrint('SharedPreferences not initialized');
       return false;
     }
     return await _prefs!.clear();

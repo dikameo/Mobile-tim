@@ -21,22 +21,21 @@ enum OrderStatus {
     }
   }
 
-  /// Check if status transition is allowed
+  /// Check if status transition is allowed (for admin, allow all except from completed/cancelled)
   bool canTransitionTo(OrderStatus newStatus) {
+    // Don't allow changing from current status to same status
+    if (this == newStatus) return false;
+
     switch (this) {
       case OrderStatus.pendingPayment:
-        return newStatus == OrderStatus.processing ||
-            newStatus == OrderStatus.cancelled;
       case OrderStatus.processing:
-        return newStatus == OrderStatus.shipped ||
-            newStatus == OrderStatus.cancelled;
       case OrderStatus.shipped:
-        return newStatus == OrderStatus.completed ||
-            newStatus == OrderStatus.cancelled;
+        // Admin can change to any status
+        return true;
       case OrderStatus.completed:
-        return false; // Cannot change from completed
       case OrderStatus.cancelled:
-        return false; // Cannot change from cancelled
+        // Cannot change from completed or cancelled
+        return false;
     }
   }
 }

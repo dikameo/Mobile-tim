@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:roaster_apps/main.dart';
+import 'package:roasty/main.dart';
 
 void main() {
   testWidgets('RoastMaster app smoke test', (WidgetTester tester) async {

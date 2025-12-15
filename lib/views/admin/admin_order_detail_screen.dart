@@ -351,46 +351,23 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
               final canTransition = order.status.canTransitionTo(status);
               return RadioListTile<OrderStatus>(
                 title: Text(status.displayName),
+                subtitle: !canTransition && status == order.status
+                    ? const Text(
+                        'Current status',
+                        style: TextStyle(fontSize: 12),
+                      )
+                    : null,
                 value: status,
                 groupValue: order.status,
                 onChanged: canTransition
                     ? (newStatus) {
-                        if (newStatus == OrderStatus.shipped) {
-                          // Show tracking number input
-                          Get.back();
-                          Get.dialog(
-                            AlertDialog(
-                              title: const Text('Enter Tracking Number'),
-                              content: TextField(
-                                controller: trackingController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Tracking Number',
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Get.back(),
-                                  child: const Text('Cancel'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Get.back();
-                                    controller.updateOrderStatus(
-                                      order.id,
-                                      newStatus!,
-                                      trackingNumber: trackingController.text,
-                                    );
-                                  },
-                                  child: const Text('Update'),
-                                ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          Get.back();
-                          controller.updateOrderStatus(order.id, newStatus!);
-                        }
+                        Get.back();
+                        // Langsung update tanpa validasi tracking number
+                        controller.updateOrderStatus(
+                          order.id,
+                          newStatus!,
+                          trackingNumber: order.trackingNumber,
+                        );
                       }
                     : null,
               );

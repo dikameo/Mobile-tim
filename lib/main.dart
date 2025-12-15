@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
 import 'config/theme.dart';
 import 'config/routes.dart';
 import 'config/supabase_config.dart';
@@ -11,20 +14,29 @@ import 'controllers/api_controller.dart';
 import 'controllers/sync_controller.dart';
 import 'controllers/theme_controller.dart';
 import 'controllers/admin_product_controller.dart';
+import 'controllers/notification_controller.dart';
 import 'data/local_data_service.dart';
 import 'services/hive_service.dart';
 import 'services/supabase_service.dart';
 import 'services/sync_service.dart';
+import 'services/fcm_service.dart';
 import 'repositories/product_repository.dart';
 
 void main() async {
   // Initialize Flutter binding
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize Firebase FIRST (required untuk FCM)
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Setup background message handler (HARUS sebelum runApp)
+  // Untuk handle notifikasi saat app terminated/background
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   // Initialize services
   await _initializeServices();
 
-  // Initialize controllers
+  // Initialize controllers (TERMASUK NotificationController)
   _initializeControllers();
 
   runApp(const RoastMasterApp());
@@ -87,10 +99,13 @@ void _initializeControllers() {
     SyncController(),
     permanent: true,
   ); // Sync controller for offline/online sync
-  Get.put(
-    AdminProductController(),
-    permanent: true,
-  ); // Admin product management
+  Get.put(AdminProductController(), permanent: true);
+
+  // ========================================
+  // NOTIFICATION CONTROLLER (BARU!)
+  // Handle push notifications lifecycle
+  // ========================================
+  Get.put(NotificationController(), permanent: true);
 
   debugPrint('✅ All controllers initialized globally');
 }
@@ -104,7 +119,7 @@ class RoastMasterApp extends StatelessWidget {
 
     return Obx(
       () => GetMaterialApp(
-        title: 'RoastMaster ID',
+        title: 'Roasty',
         theme: AppTheme.theme,
         darkTheme: AppTheme.darkTheme,
         themeMode: themeController.themeMode,

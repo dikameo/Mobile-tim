@@ -1,4 +1,4 @@
-package com.example.roaster_apps
+package com.roasty.marketplace
 
 import io.flutter.embedding.android.FlutterActivity
 
