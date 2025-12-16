@@ -1,93 +1,45 @@
 // ==================================================
 // SUPABASE EDGE FUNCTION: send-push-notifications
-// Membaca notifications_outbox dan mengirim ke FCM
-// Anti-spam & batch processing
+// Menggunakan google-auth-library (official Supabase approach)
 // ==================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { JWT } from 'npm:google-auth-library@9'
 
 // ==================================================
-// GET ACCESS TOKEN dari Service Account
+// GET ACCESS TOKEN menggunakan google-auth-library
 // ==================================================
 
 async function getAccessToken(): Promise<string> {
-  const serviceAccount = Deno.env.get('FIREBASE_SERVICE_ACCOUNT')
+  const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT')
   
-  if (!serviceAccount) {
+  if (!serviceAccountJson) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT not set')
   }
 
-  const sa = JSON.parse(serviceAccount)
+  const serviceAccount = JSON.parse(serviceAccountJson)
   
-  // Create JWT
-  const header = {
-    alg: 'RS256',
-    typ: 'JWT',
-  }
-  
-  const now = Math.floor(Date.now() / 1000)
-  const claim = {
-    iss: sa.client_email,
-    scope: 'https://www.googleapis.com/auth/firebase.messaging',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now,
-  }
-
-  // Import private key
-  const pemHeader = '-----BEGIN PRIVATE KEY-----'
-  const pemFooter = '-----END PRIVATE KEY-----'
-  const pemContents = sa.private_key.substring(
-    pemHeader.length,
-    sa.private_key.length - pemFooter.length - 1
-  ).replace(/\s/g, '')
-  
-  const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0))
-  
-  const key = await crypto.subtle.importKey(
-    'pkcs8',
-    binaryDer,
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
-
-  // Sign JWT
-  const encoder = new TextEncoder()
-  const headerB64 = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-  const claimB64 = btoa(JSON.stringify(claim)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-  const unsignedToken = `${headerB64}.${claimB64}`
-  
-  const signature = await crypto.subtle.sign(
-    'RSASSA-PKCS1-v1_5',
-    key,
-    encoder.encode(unsignedToken)
-  )
-  
-  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
-    .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-  
-  const jwt = `${unsignedToken}.${signatureB64}`
-
-  // Exchange JWT for access token
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+  return new Promise((resolve, reject) => {
+    const jwtClient = new JWT({
+      email: serviceAccount.client_email,
+      key: serviceAccount.private_key,
+      scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
+    })
+    
+    jwtClient.authorize((err, tokens) => {
+      if (err) {
+        console.error('❌ JWT authorization error:', err)
+        reject(err)
+        return
+      }
+      resolve(tokens!.access_token!)
+    })
   })
-
-  if (!response.ok) {
-    throw new Error(`Failed to get access token: ${await response.text()}`)
-  }
-
-  const result = await response.json()
-  return result.access_token
 }
 
 // ==================================================
-// FCM SEND FUNCTION
-// Kirim notifikasi ke FCM menggunakan HTTP v1 API
+// FCM SEND FUNCTION (Simplified)
 // ==================================================
 
 async function sendFCM(
@@ -96,60 +48,60 @@ async function sendFCM(
   body: string,
   data: Record<string, any>
 ): Promise<void> {
-  try {
-    const accessToken = await getAccessToken()
-    const projectId = JSON.parse(Deno.env.get('FIREBASE_SERVICE_ACCOUNT')!).project_id
-    
-    const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`
-    
-    const payload = {
-      message: {
-        token,
-        notification: {
-          title,
-          body,
-        },
-        data: {
-          ...data,
-          click_action: 'FLUTTER_NOTIFICATION_CLICK',
-        },
-        android: {
-          priority: 'high',
-          notification: {
-            sound: 'notification_sound',
-            channel_id: 'roasty_orders',
-          },
-        },
-        apns: {
-          payload: {
-            aps: {
-              sound: 'notification_sound.mp3',
-            },
-          },
-        },
-      },
-    }
-
-    const response = await fetch(fcmUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`FCM API error: ${error}`)
-    }
-
-    console.log('✅ FCM sent successfully')
-  } catch (error) {
-    console.log('⚠️ FCM send failed, running in simulation mode')
-    console.log(`   Would send: ${title} - ${body}`)
-    console.log(`   Error: ${error.message}`)
+  const accessToken = await getAccessToken()
+  const serviceAccount = JSON.parse(Deno.env.get('FIREBASE_SERVICE_ACCOUNT')!)
+  
+  const fcmUrl = `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`
+  
+  // Convert all data values to strings (FCM requirement)
+  const stringifiedData: Record<string, string> = {}
+  for (const [key, value] of Object.entries(data)) {
+    stringifiedData[key] = typeof value === 'string' ? value : JSON.stringify(value)
   }
+  
+  const payload = {
+    message: {
+      token,
+      notification: {
+        title,
+        body,
+      },
+      data: {
+        ...stringifiedData,
+        click_action: 'FLUTTER_NOTIFICATION_CLICK',
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          sound: 'notification_sound',
+          channel_id: 'roasty_orders',
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'notification_sound.mp3',
+          },
+        },
+      },
+    },
+  }
+
+  const response = await fetch(fcmUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`FCM API error: ${error}`)
+  }
+
+  console.log('✅ FCM sent successfully')
 }
 
 
