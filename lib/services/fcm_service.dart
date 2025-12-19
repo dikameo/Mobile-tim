@@ -161,14 +161,11 @@ class NotificationService {
       _showLocalNotification(message);
     });
 
-    // BACKGROUND: App di-minimize (tidak di-kill)
-    // System otomatis show notification di tray
-    // Listener ini hanya untuk logging
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('🔔 [BACKGROUND] Notification opened app');
       debugPrint('🔔 [BACKGROUND] Data: ${message.data}');
 
-      // EKSPERIMEN 2: Navigate ke screen yang sesuai
+
       _handleNotificationNavigation(message.data);
     });
 
@@ -178,9 +175,6 @@ class NotificationService {
     debugPrint('✅ FCM listeners setup complete');
   }
 
-  // =====================================================
-  // 4. GET & SAVE FCM TOKEN
-  // =====================================================
 
   Future<void> _saveFCMToken() async {
     try {
@@ -234,10 +228,6 @@ class NotificationService {
     await _saveFCMToken();
   }
 
-  // =====================================================
-  // 5. HANDLE INITIAL MESSAGE (Terminated State)
-  // App ditutup total, notifikasi diklik
-  // =====================================================
 
   Future<void> _handleInitialMessage() async {
     // EKSPERIMEN 3: App terminated, notifikasi diklik
@@ -254,10 +244,6 @@ class NotificationService {
     }
   }
 
-  // =====================================================
-  // SHOW LOCAL NOTIFICATION (Foreground)
-  // Custom sound, heads-up style
-  // =====================================================
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final data = message.data;
@@ -398,15 +384,7 @@ class NotificationService {
     debugPrint('✅ Unsubscribed from topic: $topic');
   }
 
-  // =====================================================
-  // SHOW LOCAL NOTIFICATION (Manual)
-  // Untuk testing atau notifikasi maintenance
-  // OFFLINE-SAFE: Tidak perlu koneksi internet
-  // =====================================================
 
-  /// Show a local notification manually
-  /// Digunakan untuk notifikasi maintenance atau testing
-  /// OFFLINE-SAFE: Bekerja tanpa koneksi internet
   Future<void> showMaintenanceNotification({
     required String title,
     required String body,

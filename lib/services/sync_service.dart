@@ -57,8 +57,27 @@ class SyncService {
       // Get all products from Supabase
       final supabaseProducts = await _supabaseService.getProducts();
 
-      if (supabaseProducts.isEmpty) {
-        debugPrint('No products from Supabase');
+      debugPrint('📥 Got ${supabaseProducts.length} products from Supabase');
+
+      // Get current product IDs from Hive
+      final currentHiveProducts = _hiveService.getAllProducts();
+      final currentHiveIds = currentHiveProducts.map((p) => p.id).toSet();
+      
+      // Get IDs from Supabase
+      final supabaseIds = supabaseProducts.map((p) => p['id'] as String).toSet();
+      
+      // Find deleted products (in Hive but not in Supabase)
+      final deletedIds = currentHiveIds.difference(supabaseIds);
+      
+      if (deletedIds.isNotEmpty) {
+        debugPrint('🗑️ Deleting ${deletedIds.length} products that no longer exist in database');
+        for (var id in deletedIds) {
+          await _hiveService.deleteProduct(id);
+        }
+      }
+
+      if (supabaseProducts.isEmpty && deletedIds.isEmpty) {
+        debugPrint('No products from Supabase and nothing to delete');
         return false;
       }
 
@@ -92,10 +111,10 @@ class SyncService {
       await _hiveService.saveLastSyncTime(_lastSyncTime!);
       await _hiveService.markInitialSyncDone();
 
-      debugPrint('Full sync completed: ${hiveProducts.length} products synced');
+      debugPrint('✅ Full sync completed: ${hiveProducts.length} products synced, ${deletedIds.length} deleted');
       return true;
     } catch (e) {
-      debugPrint('Error during full sync: $e');
+      debugPrint('❌ Error during full sync: $e');
       return false;
     } finally {
       _isSyncing = false;
@@ -129,14 +148,31 @@ class SyncService {
       // Get updated products from Supabase
       final updatedProducts = await _supabaseService.getProductsSince(lastSync);
 
-      if (updatedProducts.isEmpty) {
-        debugPrint('No updated products');
+      // Untuk incremental sync, kita juga perlu cek deleted products
+      // Cara sederhana: ambil semua IDs dari server dan bandingkan
+      final allSupabaseProducts = await _supabaseService.getProducts();
+      final supabaseIds = allSupabaseProducts.map((p) => p['id'] as String).toSet();
+      
+      final currentHiveProducts = _hiveService.getAllProducts();
+      final currentHiveIds = currentHiveProducts.map((p) => p.id).toSet();
+      
+      final deletedIds = currentHiveIds.difference(supabaseIds);
+      
+      if (deletedIds.isNotEmpty) {
+        debugPrint('🗑️ Deleting ${deletedIds.length} products removed from database');
+        for (var id in deletedIds) {
+          await _hiveService.deleteProduct(id);
+        }
+      }
+
+      if (updatedProducts.isEmpty && deletedIds.isEmpty) {
+        debugPrint('No updated or deleted products');
         _lastSyncTime = DateTime.now();
         await _hiveService.saveLastSyncTime(_lastSyncTime!);
         return true;
       }
 
-      // Convert and save to Hive
+      // Convert and save updated products to Hive
       final hiveProducts = updatedProducts.map((productData) {
         final specs = productData['specifications'];
         final imageUrls = productData['image_urls'];
@@ -164,11 +200,11 @@ class SyncService {
       await _hiveService.saveLastSyncTime(_lastSyncTime!);
 
       debugPrint(
-        'Incremental sync completed: ${hiveProducts.length} products updated',
+        '✅ Incremental sync completed: ${hiveProducts.length} products updated, ${deletedIds.length} deleted',
       );
       return true;
     } catch (e) {
-      debugPrint('Error during incremental sync: $e');
+      debugPrint('❌ Error during incremental sync: $e');
       return false;
     } finally {
       _isSyncing = false;

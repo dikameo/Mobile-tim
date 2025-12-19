@@ -126,6 +126,17 @@ class SharedPreferencesHelper {
     return _prefs!.getBool(_keyUseFallback) ?? false;
   }
 
+  // Cart methods
+  Future<bool> setStringList(String key, List<String> value) async {
+    if (_prefs == null) await init();
+    return await _prefs!.setStringList(key, value);
+  }
+
+  List<String>? getStringList(String key) {
+    if (_prefs == null) return null;
+    return _prefs!.getStringList(key);
+  }
+
   // Clear all data
   Future<bool> clearAll() async {
     if (_prefs == null) {

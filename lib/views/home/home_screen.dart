@@ -8,6 +8,7 @@ import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/hero_banner.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/product_card.dart';
+import '../../utils/responsive_helper.dart';
 import '../product/product_detail_screen.dart';
 import '../product/explore_screen.dart';
 import '../wishlist/wishlist_screen.dart';
@@ -319,15 +320,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getSpacing(context, mobile: 16)),
               child: GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.65,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: ResponsiveHelper.getGridCrossAxisCount(context),
+                  childAspectRatio: ResponsiveHelper.isMobile(context) ? 0.65 : (ResponsiveHelper.isTablet(context) ? 0.7 : 0.75),
+                  crossAxisSpacing: ResponsiveHelper.getSpacing(context, mobile: 12),
+                  mainAxisSpacing: ResponsiveHelper.getSpacing(context, mobile: 12),
                 ),
                 itemCount: _filteredProducts.length,
                 itemBuilder: (context, index) {

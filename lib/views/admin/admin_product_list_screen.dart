@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../controllers/admin_product_management_controller.dart';
 import '../../config/theme.dart';
 import '../../widgets/admin_widgets.dart';
+import '../../utils/responsive_helper.dart';
 import 'admin_product_form_screen.dart';
 import 'admin_product_detail_screen.dart';
 
@@ -35,8 +36,6 @@ class _AdminProductListScreenState extends State<AdminProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isTablet = MediaQuery.of(context).size.width > 600;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.primaryCharcoal,
@@ -115,11 +114,11 @@ class _AdminProductListScreenState extends State<AdminProductListScreen> {
               return RefreshIndicator(
                 onRefresh: () => controller.loadProducts(refresh: true),
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: ResponsiveHelper.getPadding(context, mobile: 16, tablet: 24, desktop: 32),
                   itemCount: controller.products.length,
                   itemBuilder: (context, index) {
                     final product = controller.products[index];
-                    return _buildProductCard(product, controller, isTablet);
+                    return _buildProductCard(product, controller, context);
                   },
                 ),
               );
@@ -158,10 +157,12 @@ class _AdminProductListScreenState extends State<AdminProductListScreen> {
   Widget _buildProductCard(
     product,
     AdminProductManagementController controller,
-    bool isTablet,
+    BuildContext context,
   ) {
+    final imageSize = ResponsiveHelper.isMobile(context) ? 80.0 : (ResponsiveHelper.isTablet(context) ? 100.0 : 120.0);
+    
     return AdminCard(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: ResponsiveHelper.getSpacing(context, mobile: 12)),
       onTap: () =>
           Get.to(() => AdminProductDetailScreen(productId: product.id)),
       child: Row(
@@ -171,18 +172,18 @@ class _AdminProductListScreenState extends State<AdminProductListScreen> {
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
               product.imageUrl,
-              width: isTablet ? 120 : 80,
-              height: isTablet ? 120 : 80,
+              width: imageSize,
+              height: imageSize,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
-                width: isTablet ? 120 : 80,
-                height: isTablet ? 120 : 80,
+                width: imageSize,
+                height: imageSize,
                 color: Colors.grey[300],
                 child: const Icon(Icons.image_not_supported),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: ResponsiveHelper.getSpacing(context, mobile: 12)),
 
           // Product Info
           Expanded(
@@ -191,39 +192,39 @@ class _AdminProductListScreenState extends State<AdminProductListScreen> {
               children: [
                 Text(
                   product.name,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: ResponsiveHelper.getFontSize(context, mobile: 16, tablet: 18, desktop: 20),
                     fontWeight: FontWeight.bold,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: ResponsiveHelper.getSpacing(context, mobile: 8)),
                 AdminInfoRow(
                   icon: Icons.category_outlined,
                   label: 'Category',
                   value: product.category,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: ResponsiveHelper.getSpacing(context, mobile: 4)),
                 Row(
                   children: [
                     Icon(
                       Icons.attach_money,
-                      size: 16,
+                      size: ResponsiveHelper.getIconSize(context, mobile: 16, tablet: 18, desktop: 20),
                       color: AppTheme.primaryCharcoal,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: ResponsiveHelper.getSpacing(context, mobile: 4)),
                     Text(
                       'Rp ${product.price.toStringAsFixed(0)}',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: ResponsiveHelper.getFontSize(context, mobile: 16, tablet: 18, desktop: 20),
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryCharcoal,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: ResponsiveHelper.getSpacing(context, mobile: 8)),
                 AdminStatusBadge(
                   label: product.isActive ? 'Active' : 'Inactive',
                   color: product.isActive ? Colors.green : Colors.red,

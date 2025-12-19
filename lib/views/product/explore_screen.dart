@@ -4,6 +4,7 @@ import '../../models/product.dart';
 import '../../services/hive_service.dart';
 import '../../controllers/sync_controller.dart';
 import '../../widgets/product_card.dart';
+import '../../utils/responsive_helper.dart';
 import 'product_detail_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -151,12 +152,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             )
           : GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.65,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+              padding: ResponsiveHelper.getPadding(context, mobile: 16, tablet: 24, desktop: 32),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: ResponsiveHelper.getGridCrossAxisCount(context),
+                childAspectRatio: ResponsiveHelper.isMobile(context) ? 0.65 : (ResponsiveHelper.isTablet(context) ? 0.7 : 0.75),
+                crossAxisSpacing: ResponsiveHelper.getSpacing(context, mobile: 12),
+                mainAxisSpacing: ResponsiveHelper.getSpacing(context, mobile: 12),
               ),
               itemCount: _visibleProducts.length,
               itemBuilder: (context, index) {

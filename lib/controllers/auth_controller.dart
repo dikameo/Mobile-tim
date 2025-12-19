@@ -4,6 +4,7 @@ import '../models/user.dart';
 import '../data/local_data_service.dart';
 import '../config/supabase_config.dart';
 import '../services/fcm_service.dart';
+import 'cart_controller.dart';
 
 class AuthController extends GetxController {
   // Reactive variables
@@ -184,6 +185,15 @@ class AuthController extends GetxController {
       // Clear local state first (instant feedback)
       _currentUser.value = null;
       _isAuthenticated.value = false;
+
+      // Clear cart untuk user ini
+      try {
+        final cartController = Get.find<CartController>();
+        await cartController.clearUserCart();
+        debugPrint('🛒 Cart cleared for logged out user');
+      } catch (e) {
+        debugPrint('⚠️ Could not clear cart: $e');
+      }
 
       // Remove from storage asynchronously
       _removeUserFromStorage();

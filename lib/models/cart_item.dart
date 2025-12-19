@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'product.dart';
 
 class CartItem {
@@ -14,6 +15,25 @@ class CartItem {
       product: product ?? this.product,
       quantity: quantity ?? this.quantity,
       isSelected: isSelected ?? this.isSelected,
+    );
+  }
+
+  // Serialize to JSON string
+  String toJson() {
+    return jsonEncode({
+      'product': product.toJson(),
+      'quantity': quantity,
+      'isSelected': isSelected,
+    });
+  }
+
+  // Deserialize from JSON string
+  factory CartItem.fromJson(String jsonString) {
+    final map = jsonDecode(jsonString);
+    return CartItem(
+      product: Product.fromJson(map['product']),
+      quantity: map['quantity'] ?? 1,
+      isSelected: map['isSelected'] ?? true,
     );
   }
 }

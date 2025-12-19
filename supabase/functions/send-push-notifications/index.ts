@@ -107,7 +107,7 @@ async function sendFCM(
 
 serve(async (req) => {
   try {
-    console.log('🚀 Edge Function started')
+    console.log('Edge Function started')
 
     // Initialize Supabase client dengan service role
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
