@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/order.dart';
 import '../config/supabase_config.dart';
+import '../services/laravel_auth_service.dart';
 
 class OrderController extends GetxController {
   final RxList<Order> _orders = <Order>[].obs;
@@ -10,6 +11,17 @@ class OrderController extends GetxController {
 
   List<Order> get orders => _orders;
   bool get isLoading => _isLoading.value;
+
+  /// Get current user ID from Laravel or Supabase auth
+  String? _getCurrentUserId() {
+    final supabaseUser = SupabaseConfig.currentUser;
+    if (supabaseUser != null) return supabaseUser.id;
+
+    if (LaravelAuthService.instance.isAuthenticated) {
+      return LaravelAuthService.instance.userId?.toString();
+    }
+    return null;
+  }
 
   @override
   void onInit() {
@@ -26,7 +38,7 @@ class OrderController extends GetxController {
 
   // Setup real-time subscription untuk auto-update saat admin mengubah status
   void _setupRealtimeSubscription() {
-    final userId = SupabaseConfig.currentUser?.id;
+    final userId = _getCurrentUserId();
     if (userId == null) return;
 
     _ordersSubscription = SupabaseConfig.client
@@ -76,7 +88,7 @@ class OrderController extends GetxController {
     try {
       _isLoading.value = true;
 
-      final userId = SupabaseConfig.currentUser?.id;
+      final userId = _getCurrentUserId();
       if (userId == null) {
         print('⚠️ No user logged in, cannot load orders');
         _orders.value = [];
@@ -117,7 +129,7 @@ class OrderController extends GetxController {
 
   Future<void> addOrder(Order order) async {
     try {
-      final userId = SupabaseConfig.currentUser?.id;
+      final userId = _getCurrentUserId();
       if (userId == null) {
         throw Exception('User not logged in');
       }

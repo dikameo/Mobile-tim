@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../config/supabase_config.dart';
 import '../models/admin_order.dart';
+import 'laravel_auth_service.dart';
 
 /// API Service for User Order operations
 class UserOrderService {
@@ -10,11 +11,24 @@ class UserOrderService {
 
   static get _client => SupabaseConfig.client;
 
+  /// Get current user ID from Laravel or Supabase auth
+  String? _getCurrentUserId() {
+    // Try Supabase first
+    final supabaseUser = SupabaseConfig.currentUser;
+    if (supabaseUser != null) return supabaseUser.id;
+
+    // Fallback to Laravel auth
+    if (LaravelAuthService.instance.isAuthenticated) {
+      return LaravelAuthService.instance.userId?.toString();
+    }
+    return null;
+  }
+
   /// GET /api/user/orders
   /// Get all orders for current authenticated user
   Future<List<AdminOrder>> getUserOrders() async {
     try {
-      final userId = SupabaseConfig.currentUser?.id;
+      final userId = _getCurrentUserId();
       if (userId == null) {
         throw Exception('User not authenticated');
       }
@@ -37,7 +51,7 @@ class UserOrderService {
   /// Get single order detail for current user
   Future<AdminOrder> getUserOrder(String orderId) async {
     try {
-      final userId = SupabaseConfig.currentUser?.id;
+      final userId = _getCurrentUserId();
       if (userId == null) {
         throw Exception('User not authenticated');
       }
@@ -59,7 +73,7 @@ class UserOrderService {
   /// Confirm payment and change status to processing
   Future<AdminOrder> confirmPayment(String orderId) async {
     try {
-      final userId = SupabaseConfig.currentUser?.id;
+      final userId = _getCurrentUserId();
       if (userId == null) {
         throw Exception('User not authenticated');
       }
@@ -95,7 +109,7 @@ class UserOrderService {
   /// Cancel order (only if status is pendingPayment)
   Future<AdminOrder> cancelOrder(String orderId) async {
     try {
-      final userId = SupabaseConfig.currentUser?.id;
+      final userId = _getCurrentUserId();
       if (userId == null) {
         throw Exception('User not authenticated');
       }

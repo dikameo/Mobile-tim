@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../config/supabase_config.dart';
 import '../models/admin_product.dart';
 import '../models/admin_order.dart';
+import 'laravel_auth_service.dart';
 
 /// API Service for Admin operations
 /// Handles all admin product and order management API calls
@@ -12,6 +13,17 @@ class AdminApiService {
 
   /// Get Supabase client with auth header
   static get _client => SupabaseConfig.client;
+
+  /// Get current user ID from Laravel or Supabase auth
+  static String? _getCurrentUserId() {
+    final supabaseUser = SupabaseConfig.currentUser;
+    if (supabaseUser != null) return supabaseUser.id;
+
+    if (LaravelAuthService.instance.isAuthenticated) {
+      return LaravelAuthService.instance.userId?.toString();
+    }
+    return null;
+  }
 
   // ==================== PRODUCT ENDPOINTS ====================
 
@@ -90,7 +102,7 @@ class AdminApiService {
   /// Create new product
   Future<AdminProduct> createProduct(AdminProduct product) async {
     try {
-      final userId = SupabaseConfig.currentUser?.id;
+      final userId = _getCurrentUserId();
       final data = product.toJson();
       data['created_by'] = userId;
       data['created_at'] = DateTime.now().toIso8601String();

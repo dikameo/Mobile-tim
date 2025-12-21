@@ -36,9 +36,13 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted && _authController.isAuthenticated) {
-        // Check if user is admin
+        // Check if user is admin - use AuthController which handles both Laravel and Supabase
         debugPrint('🔍 Checking user role...');
-        final isAdmin = await SupabaseConfig.isAdmin();
+        final isAdmin = _authController.isAdmin;
+        debugPrint(
+          '🔍 User role for isAdmin check: "${_authController.userRole}"',
+        );
+        debugPrint('🔍 Is admin: $isAdmin');
 
         if (isAdmin) {
           debugPrint('✅ Admin user detected - navigating to home');

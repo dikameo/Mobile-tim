@@ -6,6 +6,7 @@ import '../../controllers/auth_controller.dart';
 import '../../controllers/sync_controller.dart';
 import '../../config/theme.dart';
 import '../../config/supabase_config.dart';
+import '../../services/laravel_auth_service.dart';
 import 'admin_product_form_screen.dart';
 
 class AdminProductScreen extends StatefulWidget {
@@ -27,10 +28,27 @@ class _AdminProductScreenState extends State<AdminProductScreen> {
 
   Future<void> _checkAdminAccess() async {
     try {
-      final isAdmin = await SupabaseConfig.isAdmin();
+      // Check from AuthController first (works for both Laravel and Supabase)
+      final authController = Get.find<AuthController>();
+      bool isAdmin = authController.isAdmin;
+
+      // Also check Laravel auth service directly
+      if (!isAdmin) {
+        isAdmin = LaravelAuthService.instance.isAdmin;
+      }
+
+      // Fallback to Supabase check
+      if (!isAdmin) {
+        isAdmin = await SupabaseConfig.isAdmin();
+      }
+
+      debugPrint(
+        '🔍 Admin check: authController=${authController.isAdmin}, laravel=${LaravelAuthService.instance.isAdmin}, isAdmin=$isAdmin',
+      );
+
       if (!isAdmin) {
         if (mounted) {
-          Get.offAllNamed('/home');
+          Get.back(); // Go back to profile instead of resetting navigation
           Get.snackbar(
             'Access Denied',
             'You do not have permission to access admin panel',
@@ -51,7 +69,7 @@ class _AdminProductScreenState extends State<AdminProductScreen> {
     } catch (e) {
       debugPrint('Error checking admin access: $e');
       if (mounted) {
-        Get.offAllNamed('/home');
+        Get.back(); // Go back to profile instead of resetting navigation
         Get.snackbar(
           'Error',
           'Failed to verify admin access',

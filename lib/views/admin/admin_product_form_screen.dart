@@ -295,10 +295,29 @@ class AdminProductFormScreen extends StatelessWidget {
     return Builder(
       builder: (context) {
         final theme = Theme.of(context);
+
+        // Get available categories (excluding 'All')
+        final availableCategories = controller.categories
+            .where((cat) => cat != 'All')
+            .toList();
+
+        // Check if current category value exists in the list
+        final currentValue = controller.categoryController.text;
+        final hasValidValue =
+            currentValue.isNotEmpty &&
+            availableCategories.contains(currentValue);
+
+        // If category from database doesn't exist in list, add it temporarily
+        final dropdownItems = [...availableCategories];
+        if (currentValue.isNotEmpty &&
+            !availableCategories.contains(currentValue)) {
+          dropdownItems.add(currentValue);
+        }
+
         return DropdownButtonFormField<String>(
-          value: controller.categoryController.text.isEmpty
-              ? null
-              : controller.categoryController.text,
+          value: hasValidValue
+              ? currentValue
+              : (currentValue.isNotEmpty ? currentValue : null),
           decoration: InputDecoration(
             labelText: 'Category *',
             prefixIcon: const Icon(Icons.category),
@@ -313,8 +332,7 @@ class AdminProductFormScreen extends StatelessWidget {
               ),
             ),
           ),
-          items: controller.categories
-              .where((cat) => cat != 'All')
+          items: dropdownItems
               .map(
                 (category) =>
                     DropdownMenuItem(value: category, child: Text(category)),

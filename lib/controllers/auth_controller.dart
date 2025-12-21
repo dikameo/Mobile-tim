@@ -1,10 +1,16 @@
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/user.dart';
 import '../data/local_data_service.dart';
 import '../config/supabase_config.dart';
 import '../services/fcm_service.dart';
+import '../services/laravel_auth_service.dart';
 import 'cart_controller.dart';
+
+/// Auth mode: 'laravel' atau 'supabase'
+/// Set di .env dengan AUTH_MODE=laravel atau AUTH_MODE=supabase
+enum AuthMode { laravel, supabase }
 
 class AuthController extends GetxController {
   // Reactive variables
@@ -12,22 +18,61 @@ class AuthController extends GetxController {
   final RxBool _isAuthenticated = false.obs;
   final RxBool _isLoading = false.obs;
   final RxString _errorMessage = ''.obs;
+  final Rx<String?> _userRole = Rx<String?>(null);
+
+  // Auth mode
+  AuthMode get authMode {
+    final mode = dotenv.env['AUTH_MODE']?.toLowerCase() ?? 'laravel';
+    return mode == 'supabase' ? AuthMode.supabase : AuthMode.laravel;
+  }
 
   // Getters
   User? get currentUser => _currentUser.value;
   bool get isAuthenticated => _isAuthenticated.value;
   bool get isLoading => _isLoading.value;
   String get errorMessage => _errorMessage.value;
+  String? get userRole => _userRole.value;
+  bool get isAdmin => _userRole.value == 'admin';
 
   @override
   void onInit() {
     super.onInit();
-    // Only load from storage, don't check Supabase session on every init
-    _loadUserFromStorage();
+    _initializeAuth();
+  }
 
-    // Only check Supabase session if no local user found
-    if (_currentUser.value == null) {
-      _checkSupabaseSession();
+  Future<void> _initializeAuth() async {
+    if (authMode == AuthMode.laravel) {
+      await _initializeLaravelAuth();
+    } else {
+      _loadUserFromStorage();
+      if (_currentUser.value == null) {
+        _checkSupabaseSession();
+      }
+    }
+  }
+
+  /// Initialize Laravel Auth
+  Future<void> _initializeLaravelAuth() async {
+    try {
+      await LaravelAuthService.instance.initialize();
+
+      if (LaravelAuthService.instance.isAuthenticated) {
+        final laravelUser = LaravelAuthService.instance.currentUser;
+        if (laravelUser != null) {
+          _currentUser.value = User(
+            id: laravelUser['id'].toString(),
+            name: laravelUser['name'] ?? '',
+            email: laravelUser['email'] ?? '',
+            phone: laravelUser['phone'] ?? '',
+          );
+          _userRole.value = LaravelAuthService.instance.userRole;
+          _isAuthenticated.value = true;
+          debugPrint('✅ Laravel auth restored: ${_currentUser.value?.email}');
+          debugPrint('👤 Role: ${_userRole.value}');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Laravel auth init error: $e');
     }
   }
 
@@ -63,44 +108,89 @@ class AuthController extends GetxController {
       _isLoading.value = true;
       _errorMessage.value = '';
 
-      debugPrint('🔐 Attempting Supabase login...');
-      final response = await SupabaseConfig.client.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-
-      if (response.user != null) {
-        debugPrint('✅ Supabase login successful: ${response.user!.email}');
-        _currentUser.value = User(
-          id: response.user!.id,
-          name: response.user!.userMetadata?['name'] ?? email.split('@')[0],
-          email: response.user!.email ?? email,
-          phone: response.user!.phone ?? '',
-        );
-        _isAuthenticated.value = true;
-
-        // Save to storage asynchronously (don't await)
-        _saveUserToStorage(_currentUser.value!)
-            .then((_) {
-              debugPrint('✅ User saved to storage');
-            })
-            .catchError((e) {
-              debugPrint('⚠️ Failed to save user to storage: $e');
-            });
-
-        // 🔔 Save FCM token setelah login
-        try {
-          await NotificationService().saveTokenAfterLogin();
-        } catch (e) {
-          debugPrint('⚠️ Failed to save FCM token: $e');
-        }
+      if (authMode == AuthMode.laravel) {
+        await _loginWithLaravel(email, password);
+      } else {
+        await _loginWithSupabase(email, password);
       }
     } catch (e) {
-      debugPrint('❌ Supabase login failed: $e');
+      debugPrint('❌ Login failed: $e');
       _errorMessage.value = e.toString();
       rethrow;
     } finally {
       _isLoading.value = false;
+    }
+  }
+
+  /// Login via Laravel API
+  Future<void> _loginWithLaravel(String email, String password) async {
+    debugPrint('🔐 Attempting Laravel login...');
+
+    final result = await LaravelAuthService.instance.login(email, password);
+    final laravelUser = result['user'] as Map<String, dynamic>?;
+
+    if (laravelUser != null) {
+      _currentUser.value = User(
+        id: laravelUser['id'].toString(),
+        name: laravelUser['name'] ?? email.split('@')[0],
+        email: laravelUser['email'] ?? email,
+        phone: laravelUser['phone'] ?? '',
+      );
+      _userRole.value = LaravelAuthService.instance.userRole;
+      _isAuthenticated.value = true;
+
+      debugPrint('✅ Laravel login successful: ${_currentUser.value?.email}');
+      debugPrint('👤 Role: ${_userRole.value}');
+      debugPrint('🔑 Is Admin: $isAdmin');
+
+      // Save to local storage
+      _saveUserToStorage(_currentUser.value!);
+
+      // Save FCM token
+      try {
+        await NotificationService().saveTokenAfterLogin();
+      } catch (e) {
+        debugPrint('⚠️ Failed to save FCM token: $e');
+      }
+    }
+  }
+
+  /// Login via Supabase Auth
+  Future<void> _loginWithSupabase(String email, String password) async {
+    debugPrint('🔐 Attempting Supabase login...');
+    final response = await SupabaseConfig.client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+
+    if (response.user != null) {
+      debugPrint('✅ Supabase login successful: ${response.user!.email}');
+      _currentUser.value = User(
+        id: response.user!.id,
+        name: response.user!.userMetadata?['name'] ?? email.split('@')[0],
+        email: response.user!.email ?? email,
+        phone: response.user!.phone ?? '',
+      );
+      _isAuthenticated.value = true;
+
+      // Get role from profiles
+      _userRole.value = await SupabaseConfig.getCurrentUserRole();
+
+      // Save to storage asynchronously (don't await)
+      _saveUserToStorage(_currentUser.value!)
+          .then((_) {
+            debugPrint('✅ User saved to storage');
+          })
+          .catchError((e) {
+            debugPrint('⚠️ Failed to save user to storage: $e');
+          });
+
+      // 🔔 Save FCM token setelah login
+      try {
+        await NotificationService().saveTokenAfterLogin();
+      } catch (e) {
+        debugPrint('⚠️ Failed to save FCM token: $e');
+      }
     }
   }
 
@@ -129,47 +219,13 @@ class AuthController extends GetxController {
       _isLoading.value = true;
       _errorMessage.value = '';
 
-      debugPrint('📝 Attempting Supabase registration...');
-      final response = await SupabaseConfig.client.auth.signUp(
-        email: email,
-        password: password,
-        data: {'name': name, 'phone': phone},
-      );
-
-      if (response.user != null) {
-        debugPrint(
-          '✅ Supabase registration successful: ${response.user!.email}',
-        );
-        _currentUser.value = User(
-          id: response.user!.id,
-          name: name,
-          email: email,
-          phone: phone,
-        );
-        _isAuthenticated.value = true;
-
-        // Save to storage asynchronously (don't await)
-        _saveUserToStorage(_currentUser.value!)
-            .then((_) {
-              debugPrint('✅ User saved to storage');
-            })
-            .catchError((e) {
-              debugPrint('⚠️ Failed to save user to storage: $e');
-            });
-
-        // Auto-create user profile in profiles table (backup if trigger doesn't exist)
-        _createUserRole(response.user!.id, email)
-            .then((_) {
-              debugPrint('✅ User role created/verified');
-            })
-            .catchError((e) {
-              debugPrint(
-                '⚠️ Failed to create user role (may already exist): $e',
-              );
-            });
+      if (authMode == AuthMode.laravel) {
+        await _registerWithLaravel(name, email, phone, password);
+      } else {
+        await _registerWithSupabase(name, email, phone, password);
       }
     } catch (e) {
-      debugPrint('❌ Supabase registration failed: $e');
+      debugPrint('❌ Registration failed: $e');
       _errorMessage.value = e.toString();
       rethrow;
     } finally {
@@ -177,13 +233,95 @@ class AuthController extends GetxController {
     }
   }
 
+  /// Register via Laravel API
+  Future<void> _registerWithLaravel(
+    String name,
+    String email,
+    String phone,
+    String password,
+  ) async {
+    debugPrint('📝 Attempting Laravel registration...');
+
+    final result = await LaravelAuthService.instance.register(
+      name: name,
+      email: email,
+      password: password,
+      phone: phone,
+    );
+
+    final laravelUser = result['user'] as Map<String, dynamic>?;
+
+    if (laravelUser != null) {
+      _currentUser.value = User(
+        id: laravelUser['id'].toString(),
+        name: laravelUser['name'] ?? name,
+        email: laravelUser['email'] ?? email,
+        phone: laravelUser['phone'] ?? phone,
+      );
+      _userRole.value = 'customer'; // Default role for new users
+      _isAuthenticated.value = true;
+
+      debugPrint(
+        '✅ Laravel registration successful: ${_currentUser.value?.email}',
+      );
+
+      _saveUserToStorage(_currentUser.value!);
+    }
+  }
+
+  /// Register via Supabase Auth
+  Future<void> _registerWithSupabase(
+    String name,
+    String email,
+    String phone,
+    String password,
+  ) async {
+    debugPrint('📝 Attempting Supabase registration...');
+    final response = await SupabaseConfig.client.auth.signUp(
+      email: email,
+      password: password,
+      data: {'name': name, 'phone': phone},
+    );
+
+    if (response.user != null) {
+      debugPrint('✅ Supabase registration successful: ${response.user!.email}');
+      _currentUser.value = User(
+        id: response.user!.id,
+        name: name,
+        email: email,
+        phone: phone,
+      );
+      _userRole.value = 'customer';
+      _isAuthenticated.value = true;
+
+      // Save to storage asynchronously (don't await)
+      _saveUserToStorage(_currentUser.value!)
+          .then((_) {
+            debugPrint('✅ User saved to storage');
+          })
+          .catchError((e) {
+            debugPrint('⚠️ Failed to save user to storage: $e');
+          });
+
+      // Auto-create user profile in profiles table (backup if trigger doesn't exist)
+      _createUserRole(response.user!.id, email)
+          .then((_) {
+            debugPrint('✅ User role created/verified');
+          })
+          .catchError((e) {
+            debugPrint('⚠️ Failed to create user role (may already exist): $e');
+          });
+    }
+  }
+
   Future<void> logout() async {
     try {
       _isLoading.value = true;
-      debugPrint('🚪 Logging out from Supabase...');
+      debugPrint('🚪 Logging out...');
 
       // Clear local state first (instant feedback)
       _currentUser.value = null;
+      _userRole.value = null;
       _isAuthenticated.value = false;
 
       // Clear cart untuk user ini
@@ -195,18 +333,17 @@ class AuthController extends GetxController {
         debugPrint('⚠️ Could not clear cart: $e');
       }
 
-      // Remove from storage asynchronously
+      // Remove from storage
       _removeUserFromStorage();
 
-      // Sign out from Supabase (don't block UI)
-      SupabaseConfig.client.auth
-          .signOut()
-          .then((_) {
-            debugPrint('✅ Logout successful');
-          })
-          .catchError((e) {
-            debugPrint('⚠️ Supabase logout failed: $e');
-          });
+      // Logout from auth provider
+      if (authMode == AuthMode.laravel) {
+        await LaravelAuthService.instance.logout();
+        debugPrint('✅ Laravel logout successful');
+      } else {
+        await SupabaseConfig.client.auth.signOut();
+        debugPrint('✅ Supabase logout successful');
+      }
     } catch (e) {
       debugPrint('❌ Logout failed: $e');
       _errorMessage.value = e.toString();
@@ -280,6 +417,7 @@ class AuthController extends GetxController {
       // Don't throw - this is a backup mechanism
     }
   }
+
   Future<void> refreshProfileFromSupabase() async {
     try {
       final supabaseUser = SupabaseConfig.currentUser;
@@ -305,6 +443,4 @@ class AuthController extends GetxController {
       debugPrint('❌ Failed to refresh profile: $e');
     }
   }
-
-
 }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../config/supabase_config.dart';
 import '../models/product.dart';
+import 'laravel_auth_service.dart';
 
 /// Service untuk handle Supabase operations
 class SupabaseService {
@@ -101,16 +102,24 @@ class SupabaseService {
     }
   }
 
-  /// Check if user is admin
+  /// Check if user is admin (supports both Supabase and Laravel auth)
   Future<bool> isUserAdmin() async {
     try {
+      // First check Laravel auth (if using Laravel mode)
+      if (LaravelAuthService.instance.isAdmin) {
+        debugPrint('🔍 Admin verified via Laravel auth');
+        return true;
+      }
+
+      // Fallback to Supabase profile check
       final profile = await getUserProfile();
       final role = profile?['role'];
-      debugPrint('🔍 User role check: $role');
+      debugPrint('🔍 User role check from Supabase: $role');
       return role == 'admin';
     } catch (e) {
       debugPrint('Error checking admin status: $e');
-      return false;
+      // If Laravel auth says admin, trust it
+      return LaravelAuthService.instance.isAdmin;
     }
   }
 
@@ -122,7 +131,7 @@ class SupabaseService {
       final response = await _client
           .from('products')
           .select()
-          .order('created_at', ascending: false);
+          .order('id', ascending: true); // Use 'id' instead of 'created_at'
 
       debugPrint('✅ Fetched ${response.length} products from Supabase');
       return List<Map<String, dynamic>>.from(response);
@@ -161,8 +170,7 @@ class SupabaseService {
           .from('products')
           .select()
           .eq('category', category)
-          .eq('is_active', true)
-          .order('created_at', ascending: false);
+          .order('id', ascending: true);
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
@@ -172,16 +180,16 @@ class SupabaseService {
   }
 
   /// Get products updated since last sync
+  /// Note: This returns all products if updated_at column doesn't exist
   Future<List<Map<String, dynamic>>> getProductsSince(DateTime lastSync) async {
     try {
+      // Try to get products - if updated_at doesn't exist, just get all
       final response = await _client
           .from('products')
           .select()
-          .eq('is_active', true)
-          .gte('updated_at', lastSync.toIso8601String())
-          .order('updated_at', ascending: false);
+          .order('id', ascending: true);
 
-      debugPrint('Fetched ${response.length} updated products since $lastSync');
+      debugPrint('Fetched ${response.length} products for sync');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       debugPrint('Error getting products since: $e');
@@ -199,18 +207,30 @@ class SupabaseService {
         throw Exception('❌ Only admin can create products');
       }
 
-      final user = _client.auth.currentUser;
-      if (user == null) {
+      // Get user ID from Supabase or Laravel auth
+      String? userId;
+      String? userEmail;
+
+      final supabaseUser = _client.auth.currentUser;
+      if (supabaseUser != null) {
+        userId = supabaseUser.id;
+        userEmail = supabaseUser.email;
+      } else if (LaravelAuthService.instance.isAuthenticated) {
+        // Use Laravel user ID
+        userId = LaravelAuthService.instance.userId?.toString();
+        userEmail = LaravelAuthService.instance.currentUser?['email'];
+      }
+
+      if (userId == null) {
         throw Exception('❌ User not authenticated');
       }
 
-      debugPrint('✅ Admin verified: ${user.email}');
-      debugPrint('✅ User ID: ${user.id}');
+      debugPrint('✅ Admin verified: $userEmail');
+      debugPrint('✅ User ID: $userId');
 
-      // Schema: products.id is TEXT, so we generate it
+      // Schema: products.id is int8 (auto-increment), don't set it manually
       // Schema: image_urls is JSONB, so we send as JSON array
       final data = {
-        'id': product.id,
         'name': product.name,
         'image_url': product.imageUrl,
         'price': product.price,
@@ -221,17 +241,14 @@ class SupabaseService {
         'specifications': product.specifications,
         'description': product.description,
         'image_urls': product.imageUrls,
-        'created_by': user.id,
         'is_active': true,
       };
 
       debugPrint('📤 Data to insert:');
-      debugPrint('   - id: ${data['id']}');
       debugPrint('   - name: ${data['name']}');
       debugPrint('   - price: ${data['price']}');
       debugPrint('   - category: ${data['category']}');
       debugPrint('   - capacity: ${data['capacity']}');
-      debugPrint('   - created_by: ${data['created_by']}');
 
       debugPrint('🔄 Executing INSERT query...');
 
@@ -261,8 +278,11 @@ class SupabaseService {
         throw Exception('❌ Only admin can update products');
       }
 
-      final user = _client.auth.currentUser;
-      if (user == null) {
+      // Verify authentication (Supabase or Laravel)
+      final supabaseUser = _client.auth.currentUser;
+      final laravelAuth = LaravelAuthService.instance.isAuthenticated;
+
+      if (supabaseUser == null && !laravelAuth) {
         throw Exception('❌ User not authenticated');
       }
 

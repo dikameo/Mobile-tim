@@ -9,6 +9,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../config/supabase_config.dart';
 import '../services/address_ai_service.dart';
+import '../services/laravel_auth_service.dart';
 
 class AddressController extends GetxController {
   RxString address = ''.obs;
@@ -16,6 +17,17 @@ class AddressController extends GetxController {
   RxString accuracyText = ''.obs;
   RxBool loading = false.obs;
   RxBool useGPS = false.obs; // FALSE = Network Mode
+
+  /// Get current user ID from Laravel or Supabase auth
+  String? _getCurrentUserId() {
+    final supabaseUser = SupabaseConfig.currentUser;
+    if (supabaseUser != null) return supabaseUser.id;
+
+    if (LaravelAuthService.instance.isAuthenticated) {
+      return LaravelAuthService.instance.userId?.toString();
+    }
+    return null;
+  }
 
   // Tambahan untuk menampilkan koordinat
   RxString latitudeText = '-6.200000'.obs;
@@ -591,8 +603,8 @@ class AddressController extends GetxController {
       return false;
     }
 
-    final user = SupabaseConfig.currentUser;
-    if (user == null) {
+    final userId = _getCurrentUserId();
+    if (userId == null) {
       Get.snackbar("Error", "User tidak ditemukan");
       return false;
     }
@@ -603,7 +615,7 @@ class AddressController extends GetxController {
 
     try {
       final data = {
-        'user_id': user.id,
+        'user_id': userId,
         'alamat': address.value,
         'latitude': currentLatLng.value.latitude,
         'longitude': currentLatLng.value.longitude,
@@ -639,8 +651,8 @@ class AddressController extends GetxController {
 
   // LOAD SAVED ADDRESS
   Future<void> loadSavedAddress() async {
-    final user = SupabaseConfig.currentUser;
-    if (user == null) return;
+    final userId = _getCurrentUserId();
+    if (userId == null) return;
 
     if (loading.value) return;
     loading.value = true;
@@ -649,7 +661,7 @@ class AddressController extends GetxController {
       final res = await SupabaseConfig.client
           .from('user_address')
           .select()
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .maybeSingle()
           .timeout(const Duration(seconds: 10));
 

@@ -62,10 +62,31 @@ class LaravelAuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        debugPrint('📦 Full response data: $data');
 
-        // Save token
-        _token = data['token'] ?? data['access_token'];
-        _currentUser = data['user'];
+        // Handle nested response: { success: true, data: { user: {...}, token: "xxx" } }
+        final responseData = data['data'] ?? data;
+
+        // Save token - support multiple formats
+        _token = responseData['token'] ?? data['token'] ?? data['access_token'];
+
+        // Handle different user structures - get the actual user object
+        // Response: { data: { user: {...}, token: "xxx" } }
+        var userObj = responseData['user'] ?? data['user'];
+
+        // If userObj itself has a nested 'user' key, unwrap it
+        if (userObj is Map && userObj.containsKey('user')) {
+          userObj = userObj['user'];
+        }
+
+        _currentUser = userObj is Map<String, dynamic> ? userObj : responseData;
+
+        debugPrint('📦 Parsed user: $_currentUser');
+        debugPrint('🔑 Parsed token: $_token');
+        debugPrint('👤 User profile: ${_currentUser?['profile']}');
+        debugPrint(
+          '👤 User role from profile: ${_currentUser?['profile']?['role']}',
+        );
 
         if (_token != null) {
           final prefs = await SharedPreferences.getInstance();

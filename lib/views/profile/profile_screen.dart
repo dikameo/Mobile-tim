@@ -5,10 +5,10 @@ import '../../controllers/auth_controller.dart';
 import '../../controllers/theme_controller.dart';
 import '../../config/supabase_config.dart';
 import '../../services/fcm_service.dart';
+import '../../services/laravel_auth_service.dart';
 import '../profile/address_screen.dart';
 import '../../bindings/addressbindings.dart';
 import '../profile/edit_profile_screen.dart';
-
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,6 +30,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _checkAdminRole() async {
     try {
       print('🔍 ========== ADMIN CHECK START ==========');
+
+      // First check from AuthController (works for both Laravel and Supabase)
+      final authController = Get.find<AuthController>();
+      if (authController.isAdmin) {
+        print('✅ Admin detected from AuthController');
+        setState(() {
+          isAdmin = true;
+          isCheckingRole = false;
+        });
+        print('✅ Admin check completed. isAdmin = $isAdmin');
+        print('🔍 ========== ADMIN CHECK END ==========');
+        return;
+      }
+
+      // Also check Laravel auth service directly
+      if (LaravelAuthService.instance.isAdmin) {
+        print('✅ Admin detected from LaravelAuthService');
+        setState(() {
+          isAdmin = true;
+          isCheckingRole = false;
+        });
+        print('✅ Admin check completed. isAdmin = $isAdmin');
+        print('🔍 ========== ADMIN CHECK END ==========');
+        return;
+      }
+
       print('🔍 Current Supabase user: ${SupabaseConfig.currentUser?.email}');
       print('🔍 Current Supabase user ID: ${SupabaseConfig.currentUser?.id}');
 
@@ -202,9 +228,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
             const SizedBox(height: 8),
-
-            
-
 
             // Admin Panel Section
             if (isCheckingRole)

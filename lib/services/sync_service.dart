@@ -63,9 +63,9 @@ class SyncService {
       final currentHiveProducts = _hiveService.getAllProducts();
       final currentHiveIds = currentHiveProducts.map((p) => p.id).toSet();
 
-      // Get IDs from Supabase
+      // Get IDs from Supabase (convert to String since DB uses int)
       final supabaseIds = supabaseProducts
-          .map((p) => p['id'] as String)
+          .map((p) => p['id']?.toString() ?? '')
           .toSet();
 
       // Find deleted products (in Hive but not in Supabase)
@@ -91,19 +91,25 @@ class SyncService {
         final specs = productData['specifications'];
         final imageUrls = productData['image_urls'];
 
+        // Get first image from image_urls array for imageUrl field
+        String? firstImageUrl;
+        if (imageUrls is List && imageUrls.isNotEmpty) {
+          firstImageUrl = imageUrls[0]?.toString();
+        }
+
         return ProductHive.fromProduct({
-          'id': productData['id'],
-          'name': productData['name'],
-          'imageUrl': productData['image_url'] ?? productData['imageUrl'],
-          'price': productData['price'],
-          'capacity': productData['capacity'],
-          'rating': productData['rating'],
+          'id': productData['id']?.toString() ?? '',
+          'name': productData['name'] ?? '',
+          'imageUrl': firstImageUrl ?? productData['image_url'] ?? '',
+          'price': productData['price'] ?? 0,
+          'capacity': productData['capacity'] ?? '',
+          'rating': productData['rating'] ?? 0.0, // Default 0 if not exist
           'reviewCount':
-              productData['review_count'] ?? productData['reviewCount'],
-          'category': productData['category'],
-          'specifications': specs is String ? {} : specs,
-          'description': productData['description'],
-          'imageUrls': imageUrls is String ? [] : imageUrls,
+              productData['review_count'] ?? 0, // Default 0 if not exist
+          'category': productData['category'] ?? '',
+          'specifications': specs is Map ? specs : (specs is String ? {} : {}),
+          'description': productData['description'] ?? '',
+          'imageUrls': imageUrls is List ? imageUrls : [],
         });
       }).toList();
 
@@ -158,7 +164,7 @@ class SyncService {
       // Cara sederhana: ambil semua IDs dari server dan bandingkan
       final allSupabaseProducts = await _supabaseService.getProducts();
       final supabaseIds = allSupabaseProducts
-          .map((p) => p['id'] as String)
+          .map((p) => p['id']?.toString() ?? '')
           .toSet();
 
       final currentHiveProducts = _hiveService.getAllProducts();
