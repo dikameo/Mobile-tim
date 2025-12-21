@@ -52,7 +52,7 @@ class NotificationController extends GetxController {
     debugPrint('🔔 [CONTROLLER] Handling notification tap');
     debugPrint('🔔 [CONTROLLER] Data: $data');
 
-    final type = data['type'] as String?;
+    // final type = data['type'] as String?; // Reserved for future use
     final resourceId = data['resource_id'] as String?;
     final targetScreen = data['target_screen'] as String?;
 

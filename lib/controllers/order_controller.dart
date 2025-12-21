@@ -3,11 +3,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/order.dart';
 import '../config/supabase_config.dart';
 import '../services/laravel_auth_service.dart';
+import '../services/notification_trigger_service.dart';
 
 class OrderController extends GetxController {
   final RxList<Order> _orders = <Order>[].obs;
   final RxBool _isLoading = false.obs;
   RealtimeChannel? _ordersSubscription;
+  final NotificationTriggerService _notificationService =
+      NotificationTriggerService();
 
   List<Order> get orders => _orders;
   bool get isLoading => _isLoading.value;
@@ -21,6 +24,13 @@ class OrderController extends GetxController {
       return LaravelAuthService.instance.userId?.toString();
     }
     return null;
+  }
+
+  /// Get user ID as int for database (schema: user_id is bigint)
+  int? _getCurrentUserIdAsInt() {
+    final userIdStr = _getCurrentUserId();
+    if (userIdStr == null) return null;
+    return int.tryParse(userIdStr);
   }
 
   @override
@@ -38,7 +48,7 @@ class OrderController extends GetxController {
 
   // Setup real-time subscription untuk auto-update saat admin mengubah status
   void _setupRealtimeSubscription() {
-    final userId = _getCurrentUserId();
+    final userId = _getCurrentUserIdAsInt();
     if (userId == null) return;
 
     _ordersSubscription = SupabaseConfig.client
@@ -50,7 +60,7 @@ class OrderController extends GetxController {
           filter: PostgresChangeFilter(
             type: PostgresChangeFilterType.eq,
             column: 'user_id',
-            value: userId,
+            value: userId, // Now as int
           ),
           callback: (payload) {
             print('🔔 Order updated in real-time: ${payload.newRecord}');
@@ -59,7 +69,7 @@ class OrderController extends GetxController {
         )
         .subscribe();
 
-    print('✅ Real-time subscription setup for user orders');
+    print('✅ Real-time subscription setup for user orders (user_id: $userId)');
   }
 
   // Handle order update dari real-time subscription
@@ -88,7 +98,7 @@ class OrderController extends GetxController {
     try {
       _isLoading.value = true;
 
-      final userId = _getCurrentUserId();
+      final userId = _getCurrentUserIdAsInt();
       if (userId == null) {
         print('⚠️ No user logged in, cannot load orders');
         _orders.value = [];
@@ -96,11 +106,16 @@ class OrderController extends GetxController {
         return;
       }
 
+      print('📦 Loading orders for user ID: $userId');
+
       final response = await SupabaseConfig.client
           .from('orders')
           .select()
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
+          .eq('user_id', userId) // Now comparing as int
+          .order(
+            'order_date',
+            ascending: false,
+          ); // Use order_date instead of created_at
 
       _orders.value = (response as List)
           .map((json) => Order.fromJson(json))
@@ -129,15 +144,18 @@ class OrderController extends GetxController {
 
   Future<void> addOrder(Order order) async {
     try {
-      final userId = _getCurrentUserId();
+      final userId = _getCurrentUserIdAsInt();
       if (userId == null) {
-        throw Exception('User not logged in');
+        throw Exception('User not logged in or invalid user ID');
       }
 
-      // Insert to Supabase
+      print('📦 Creating order for user ID: $userId');
+      print('📦 Order ID: ${order.orderId}');
+
+      // Insert to Supabase (user_id is bigint)
       await SupabaseConfig.client.from('orders').insert({
         'id': order.orderId,
-        'user_id': userId,
+        'user_id': userId, // Now sending as int
         'status': order.status.toString().split('.').last,
         'total': order.total,
         'subtotal': order.subtotal,
@@ -152,6 +170,10 @@ class OrderController extends GetxController {
       // Add to local list
       _orders.insert(0, order);
       print('✅ Order created successfully');
+
+      // Trigger notification for new order
+      print('🔔 Triggering notification for new order...');
+      await _notificationService.afterOrderCreate(order.orderId, userId);
     } catch (e) {
       print('❌ Failed to create order: $e');
       rethrow;

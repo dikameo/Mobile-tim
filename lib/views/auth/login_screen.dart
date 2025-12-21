@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../config/theme.dart';
-import '../../config/supabase_config.dart';
 import '../../controllers/auth_controller.dart';
 import '../../utils/input_validator.dart';
 

@@ -11,7 +11,7 @@ class UserOrderService {
 
   static get _client => SupabaseConfig.client;
 
-  /// Get current user ID from Laravel or Supabase auth
+  /// Get current user ID from Laravel or Supabase auth as String
   String? _getCurrentUserId() {
     // Try Supabase first
     final supabaseUser = SupabaseConfig.currentUser;
@@ -24,22 +24,32 @@ class UserOrderService {
     return null;
   }
 
+  /// Get current user ID as int (for database queries where user_id is bigint)
+  int? _getCurrentUserIdAsInt() {
+    final userIdStr = _getCurrentUserId();
+    if (userIdStr == null) return null;
+    return int.tryParse(userIdStr);
+  }
+
   /// GET /api/user/orders
   /// Get all orders for current authenticated user
   Future<List<AdminOrder>> getUserOrders() async {
     try {
-      final userId = _getCurrentUserId();
+      final userId = _getCurrentUserIdAsInt();
       if (userId == null) {
         throw Exception('User not authenticated');
       }
 
+      debugPrint('📦 Fetching orders for user ID: $userId');
+
       final response = await _client
           .from('orders')
           .select('*')
-          .eq('user_id', userId)
+          .eq('user_id', userId) // Now as int
           .order('order_date', ascending: false);
 
       final data = response as List;
+      debugPrint('✅ Found ${data.length} orders');
       return data.map((json) => AdminOrder.fromJson(json)).toList();
     } catch (e) {
       debugPrint('❌ Error fetching user orders: $e');
@@ -51,7 +61,7 @@ class UserOrderService {
   /// Get single order detail for current user
   Future<AdminOrder> getUserOrder(String orderId) async {
     try {
-      final userId = _getCurrentUserId();
+      final userId = _getCurrentUserIdAsInt();
       if (userId == null) {
         throw Exception('User not authenticated');
       }
@@ -60,7 +70,7 @@ class UserOrderService {
           .from('orders')
           .select('*')
           .eq('id', orderId)
-          .eq('user_id', userId)
+          .eq('user_id', userId) // Now as int
           .single();
 
       return AdminOrder.fromJson(response);
@@ -73,7 +83,7 @@ class UserOrderService {
   /// Confirm payment and change status to processing
   Future<AdminOrder> confirmPayment(String orderId) async {
     try {
-      final userId = _getCurrentUserId();
+      final userId = _getCurrentUserIdAsInt();
       if (userId == null) {
         throw Exception('User not authenticated');
       }
@@ -95,7 +105,7 @@ class UserOrderService {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', orderId)
-          .eq('user_id', userId)
+          .eq('user_id', userId) // Now as int
           .select()
           .single();
 
@@ -109,7 +119,7 @@ class UserOrderService {
   /// Cancel order (only if status is pendingPayment)
   Future<AdminOrder> cancelOrder(String orderId) async {
     try {
-      final userId = _getCurrentUserId();
+      final userId = _getCurrentUserIdAsInt();
       if (userId == null) {
         throw Exception('User not authenticated');
       }
@@ -131,7 +141,7 @@ class UserOrderService {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', orderId)
-          .eq('user_id', userId)
+          .eq('user_id', userId) // Now as int
           .select()
           .single();
 

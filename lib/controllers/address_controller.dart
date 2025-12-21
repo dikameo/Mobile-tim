@@ -603,9 +603,16 @@ class AddressController extends GetxController {
       return false;
     }
 
-    final userId = _getCurrentUserId();
-    if (userId == null) {
+    final userIdStr = _getCurrentUserId();
+    if (userIdStr == null) {
       Get.snackbar("Error", "User tidak ditemukan");
+      return false;
+    }
+
+    // Convert user_id to int (schema: user_id is bigint)
+    final userId = int.tryParse(userIdStr);
+    if (userId == null) {
+      Get.snackbar("Error", "Invalid user ID format");
       return false;
     }
 
@@ -614,17 +621,22 @@ class AddressController extends GetxController {
     final int requestId = ++_currentRequestId;
 
     try {
+      // Parse accuracy to numeric (schema: accuracy is numeric(10,2))
+      final accuracyNum = double.tryParse(
+        accuracyText.value.replaceAll(RegExp(r'[^0-9.]'), ''),
+      );
+
       final data = {
         'user_id': userId,
         'alamat': address.value,
         'latitude': currentLatLng.value.latitude,
         'longitude': currentLatLng.value.longitude,
-        'accuracy': accuracyText.value,
+        'accuracy': accuracyNum,
         'updated_at': DateTime.now().toIso8601String(),
       };
 
       await SupabaseConfig.client
-          .from('user_address')
+          .from('user_addresses') // Correct table name
           .upsert(data, onConflict: 'user_id')
           .timeout(const Duration(seconds: 10));
 
@@ -651,7 +663,11 @@ class AddressController extends GetxController {
 
   // LOAD SAVED ADDRESS
   Future<void> loadSavedAddress() async {
-    final userId = _getCurrentUserId();
+    final userIdStr = _getCurrentUserId();
+    if (userIdStr == null) return;
+
+    // Convert user_id to int (schema: user_id is bigint)
+    final userId = int.tryParse(userIdStr);
     if (userId == null) return;
 
     if (loading.value) return;
@@ -659,7 +675,7 @@ class AddressController extends GetxController {
 
     try {
       final res = await SupabaseConfig.client
-          .from('user_address')
+          .from('user_addresses') // Correct table name
           .select()
           .eq('user_id', userId)
           .maybeSingle()
@@ -667,10 +683,18 @@ class AddressController extends GetxController {
 
       if (res != null) {
         address.value = res['alamat'] ?? '';
-        accuracyText.value = res['accuracy'] ?? '';
 
-        final lat = res['latitude'] as double?;
-        final lng = res['longitude'] as double?;
+        // Handle numeric accuracy (schema: numeric(10,2))
+        final accuracy = res['accuracy'];
+        if (accuracy != null) {
+          accuracyText.value = '${accuracy}m';
+        } else {
+          accuracyText.value = '';
+        }
+
+        // Handle numeric lat/lng (schema: numeric(10,8) and numeric(11,8))
+        final lat = (res['latitude'] as num?)?.toDouble();
+        final lng = (res['longitude'] as num?)?.toDouble();
 
         if (lat != null && lng != null) {
           final latLng = LatLng(lat, lng);

@@ -8,7 +8,6 @@ import '../../config/theme.dart';
 import '../../models/product.dart';
 import '../../controllers/cart_controller.dart';
 import '../../controllers/wishlist_controller.dart';
-import '../../utils/responsive_helper.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;

@@ -337,10 +337,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     AdminOrder order,
     AdminOrderController controller,
   ) {
-    final trackingController = TextEditingController(
-      text: order.trackingNumber,
-    );
-
+    // Note: trackingNumber is managed separately via order.trackingNumber
     Get.dialog(
       AlertDialog(
         title: const Text('Change Order Status'),

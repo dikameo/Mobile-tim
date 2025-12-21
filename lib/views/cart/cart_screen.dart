@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../config/theme.dart';
 import '../../controllers/cart_controller.dart';
-import '../../utils/responsive_helper.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
