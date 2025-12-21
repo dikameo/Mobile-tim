@@ -47,7 +47,8 @@ class ProductCard extends StatelessWidget {
 
   Widget _buildVerticalCard(
     BuildContext context,
-    bool _, // Placeholder parameter, not used since isWishlisted is handled in Obx
+    bool
+    _, // Placeholder parameter, not used since isWishlisted is handled in Obx
     NumberFormat currencyFormatter,
     WishlistController wishlistProvider,
   ) {
@@ -73,20 +74,36 @@ class ProductCard extends StatelessWidget {
                   ),
                   child: CachedNetworkImage(
                     imageUrl: product.imageUrl,
-                    height: context.imageHeight(mobile: 160, tablet: 200, desktop: 240),
+                    height: context.imageHeight(
+                      mobile: 160,
+                      tablet: 200,
+                      desktop: 240,
+                    ),
                     width: double.infinity,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      height: context.imageHeight(mobile: 160, tablet: 200, desktop: 240),
+                      height: context.imageHeight(
+                        mobile: 160,
+                        tablet: 200,
+                        desktop: 240,
+                      ),
                       color: theme.colorScheme.surface,
                       child: const Center(child: CircularProgressIndicator()),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      height: context.imageHeight(mobile: 160, tablet: 200, desktop: 240),
+                      height: context.imageHeight(
+                        mobile: 160,
+                        tablet: 200,
+                        desktop: 240,
+                      ),
                       color: theme.colorScheme.surface,
                       child: Icon(
                         Icons.coffee,
-                        size: context.iconSize(mobile: 48, tablet: 56, desktop: 64),
+                        size: context.iconSize(
+                          mobile: 48,
+                          tablet: 56,
+                          desktop: 64,
+                        ),
                         color: Colors.grey,
                       ),
                     ),
@@ -96,34 +113,40 @@ class ProductCard extends StatelessWidget {
                 Positioned(
                   top: context.spacing(1),
                   right: context.spacing(1),
-                  child: Obx(
-                    () {
-                      final isWishlisted = wishlistProvider.isInWishlist(product.id);
-                      return GestureDetector(
-                        onTap: () => wishlistProvider.toggleWishlist(product),
-                        child: Container(
-                          padding: EdgeInsets.all(context.spacing(0.75)),
-                          decoration: BoxDecoration(
-                            color: theme.cardColor,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            isWishlisted ? Icons.favorite : Icons.favorite_outline,
-                            color: isWishlisted
-                                ? AppTheme.secondaryOrange
-                                : theme.iconTheme.color?.withOpacity(0.6),
-                            size: context.iconSize(mobile: 18, tablet: 20, desktop: 22),
+                  child: Obx(() {
+                    final isWishlisted = wishlistProvider.isInWishlist(
+                      product.id,
+                    );
+                    return GestureDetector(
+                      onTap: () => wishlistProvider.toggleWishlist(product),
+                      child: Container(
+                        padding: EdgeInsets.all(context.spacing(0.75)),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isWishlisted
+                              ? Icons.favorite
+                              : Icons.favorite_outline,
+                          color: isWishlisted
+                              ? AppTheme.secondaryOrange
+                              : theme.iconTheme.color?.withOpacity(0.6),
+                          size: context.iconSize(
+                            mobile: 18,
+                            tablet: 20,
+                            desktop: 22,
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -150,7 +173,11 @@ class ProductCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppTheme.secondaryOrange,
                           fontWeight: FontWeight.bold,
-                          fontSize: context.fontSize(mobile: 10, tablet: 11, desktop: 12),
+                          fontSize: context.fontSize(
+                            mobile: 10,
+                            tablet: 11,
+                            desktop: 12,
+                          ),
                         ),
                       ),
                     ),
@@ -159,7 +186,11 @@ class ProductCard extends StatelessWidget {
                     Text(
                       product.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: context.fontSize(mobile: 14, tablet: 16, desktop: 18),
+                        fontSize: context.fontSize(
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -168,20 +199,38 @@ class ProductCard extends StatelessWidget {
                     // Rating
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: context.iconSize(mobile: 14, tablet: 16, desktop: 18)),
-                        SizedBox(width: context.spacing(0.5)),
-                        Text(
-                          '${product.rating}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: context.fontSize(mobile: 12, tablet: 13, desktop: 14),
+                        Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                          size: context.iconSize(
+                            mobile: 14,
+                            tablet: 16,
+                            desktop: 18,
                           ),
                         ),
                         SizedBox(width: context.spacing(0.5)),
                         Text(
+                          '${product.rating}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontSize: context.fontSize(
+                                  mobile: 12,
+                                  tablet: 13,
+                                  desktop: 14,
+                                ),
+                              ),
+                        ),
+                        SizedBox(width: context.spacing(0.5)),
+                        Text(
                           '(${product.reviewCount})',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: context.fontSize(mobile: 12, tablet: 13, desktop: 14),
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontSize: context.fontSize(
+                                  mobile: 12,
+                                  tablet: 13,
+                                  desktop: 14,
+                                ),
+                              ),
                         ),
                       ],
                     ),
@@ -192,7 +241,11 @@ class ProductCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppTheme.secondaryOrange,
                         fontWeight: FontWeight.bold,
-                        fontSize: context.fontSize(mobile: 16, tablet: 18, desktop: 20),
+                        fontSize: context.fontSize(
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
                       ),
                     ),
                   ],
@@ -207,7 +260,8 @@ class ProductCard extends StatelessWidget {
 
   Widget _buildHorizontalCard(
     BuildContext context,
-    bool _, // Placeholder parameter, not used since isWishlisted is handled in Obx
+    bool
+    _, // Placeholder parameter, not used since isWishlisted is handled in Obx
     NumberFormat currencyFormatter,
     WishlistController wishlistProvider,
   ) {
@@ -235,20 +289,36 @@ class ProductCard extends StatelessWidget {
                   ),
                   child: CachedNetworkImage(
                     imageUrl: product.imageUrl,
-                    height: context.imageHeight(mobile: 180, tablet: 220, desktop: 260),
+                    height: context.imageHeight(
+                      mobile: 180,
+                      tablet: 220,
+                      desktop: 260,
+                    ),
                     width: double.infinity,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      height: context.imageHeight(mobile: 180, tablet: 220, desktop: 260),
+                      height: context.imageHeight(
+                        mobile: 180,
+                        tablet: 220,
+                        desktop: 260,
+                      ),
                       color: theme.colorScheme.surface,
                       child: const Center(child: CircularProgressIndicator()),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      height: context.imageHeight(mobile: 180, tablet: 220, desktop: 260),
+                      height: context.imageHeight(
+                        mobile: 180,
+                        tablet: 220,
+                        desktop: 260,
+                      ),
                       color: theme.colorScheme.surface,
                       child: Icon(
                         Icons.coffee,
-                        size: context.iconSize(mobile: 48, tablet: 56, desktop: 64),
+                        size: context.iconSize(
+                          mobile: 48,
+                          tablet: 56,
+                          desktop: 64,
+                        ),
                         color: Colors.grey,
                       ),
                     ),
@@ -258,34 +328,40 @@ class ProductCard extends StatelessWidget {
                 Positioned(
                   top: context.spacing(1),
                   right: context.spacing(1),
-                  child: Obx(
-                    () {
-                      final isWishlisted = wishlistProvider.isInWishlist(product.id);
-                      return GestureDetector(
-                        onTap: () => wishlistProvider.toggleWishlist(product),
-                        child: Container(
-                          padding: EdgeInsets.all(context.spacing(0.75)),
-                          decoration: BoxDecoration(
-                            color: theme.cardColor,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            isWishlisted ? Icons.favorite : Icons.favorite_outline,
-                            color: isWishlisted
-                                ? AppTheme.secondaryOrange
-                                : theme.iconTheme.color?.withOpacity(0.6),
-                            size: context.iconSize(mobile: 18, tablet: 20, desktop: 22),
+                  child: Obx(() {
+                    final isWishlisted = wishlistProvider.isInWishlist(
+                      product.id,
+                    );
+                    return GestureDetector(
+                      onTap: () => wishlistProvider.toggleWishlist(product),
+                      child: Container(
+                        padding: EdgeInsets.all(context.spacing(0.75)),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isWishlisted
+                              ? Icons.favorite
+                              : Icons.favorite_outline,
+                          color: isWishlisted
+                              ? AppTheme.secondaryOrange
+                              : theme.iconTheme.color?.withOpacity(0.6),
+                          size: context.iconSize(
+                            mobile: 18,
+                            tablet: 20,
+                            desktop: 22,
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -312,7 +388,11 @@ class ProductCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppTheme.secondaryOrange,
                           fontWeight: FontWeight.bold,
-                          fontSize: context.fontSize(mobile: 10, tablet: 11, desktop: 12),
+                          fontSize: context.fontSize(
+                            mobile: 10,
+                            tablet: 11,
+                            desktop: 12,
+                          ),
                         ),
                       ),
                     ),
@@ -321,7 +401,11 @@ class ProductCard extends StatelessWidget {
                     Text(
                       product.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: context.fontSize(mobile: 14, tablet: 16, desktop: 18),
+                        fontSize: context.fontSize(
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -330,20 +414,38 @@ class ProductCard extends StatelessWidget {
                     // Rating
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: context.iconSize(mobile: 14, tablet: 16, desktop: 18)),
-                        SizedBox(width: context.spacing(0.5)),
-                        Text(
-                          '${product.rating}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: context.fontSize(mobile: 12, tablet: 13, desktop: 14),
+                        Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                          size: context.iconSize(
+                            mobile: 14,
+                            tablet: 16,
+                            desktop: 18,
                           ),
                         ),
                         SizedBox(width: context.spacing(0.5)),
                         Text(
+                          '${product.rating}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontSize: context.fontSize(
+                                  mobile: 12,
+                                  tablet: 13,
+                                  desktop: 14,
+                                ),
+                              ),
+                        ),
+                        SizedBox(width: context.spacing(0.5)),
+                        Text(
                           '(${product.reviewCount})',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: context.fontSize(mobile: 12, tablet: 13, desktop: 14),
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontSize: context.fontSize(
+                                  mobile: 12,
+                                  tablet: 13,
+                                  desktop: 14,
+                                ),
+                              ),
                         ),
                       ],
                     ),
@@ -354,7 +456,11 @@ class ProductCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppTheme.secondaryOrange,
                         fontWeight: FontWeight.bold,
-                        fontSize: context.fontSize(mobile: 16, tablet: 18, desktop: 20),
+                        fontSize: context.fontSize(
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
                       ),
                     ),
                   ],

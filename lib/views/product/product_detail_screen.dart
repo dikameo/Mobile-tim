@@ -65,45 +65,47 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
-                  Obx(
-                    () {
-                      final isWishlisted = wishlistProvider.isInWishlist(widget.product.id);
-                      return IconButton(
-                        icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: theme.cardColor,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            isWishlisted ? Icons.favorite : Icons.favorite_outline,
-                            color: isWishlisted
-                                ? AppTheme.secondaryOrange
-                                : theme.iconTheme.color,
-                          ),
-                        ),
-                        onPressed: () {
-                          wishlistProvider.toggleWishlist(widget.product);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                isWishlisted
-                                    ? 'Removed from wishlist'
-                                    : 'Added to wishlist',
-                              ),
-                              duration: const Duration(seconds: 1),
+                  Obx(() {
+                    final isWishlisted = wishlistProvider.isInWishlist(
+                      widget.product.id,
+                    );
+                    return IconButton(
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
                             ),
-                          );
-                        },
-                      );
-                    },
-                  ), // Close Obx that wraps the IconButton
+                          ],
+                        ),
+                        child: Icon(
+                          isWishlisted
+                              ? Icons.favorite
+                              : Icons.favorite_outline,
+                          color: isWishlisted
+                              ? AppTheme.secondaryOrange
+                              : theme.iconTheme.color,
+                        ),
+                      ),
+                      onPressed: () {
+                        wishlistProvider.toggleWishlist(widget.product);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isWishlisted
+                                  ? 'Removed from wishlist'
+                                  : 'Added to wishlist',
+                            ),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                    );
+                  }), // Close Obx that wraps the IconButton
                   const SizedBox(width: 8),
                 ], // Close actions list
                 flexibleSpace: FlexibleSpaceBar(

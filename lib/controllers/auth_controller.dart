@@ -157,7 +157,7 @@ class AuthController extends GetxController {
               debugPrint('⚠️ Failed to save user to storage: $e');
             });
 
-        // Auto-create user role in user_roles table (backup if trigger doesn't exist)
+        // Auto-create user profile in profiles table (backup if trigger doesn't exist)
         _createUserRole(response.user!.id, email)
             .then((_) {
               debugPrint('✅ User role created/verified');
@@ -250,18 +250,33 @@ class AuthController extends GetxController {
     }
   }
 
-  // Create user role in user_roles table (backup if trigger doesn't exist)
+  // Create/update user profile with default role in profiles table
+  // NOTE: profiles table is used for role management (consistent with DB migrations)
   Future<void> _createUserRole(String userId, String email) async {
     try {
-      // Insert user role with default 'user' role
-      await SupabaseConfig.client.from('user_roles').upsert({
-        'id': userId,
-        'email': email,
-        'role': 'user',
-      }, onConflict: 'id');
-      debugPrint('✅ User role created for: $email');
+      // Check if profile already exists
+      final existing = await SupabaseConfig.client
+          .from('profiles')
+          .select('id, role')
+          .eq('id', userId)
+          .maybeSingle();
+
+      if (existing == null) {
+        // Create new profile with default 'customer' role
+        await SupabaseConfig.client.from('profiles').insert({
+          'id': userId,
+          'email': email,
+          'role': 'customer',
+        });
+        debugPrint('✅ User profile created for: $email');
+      } else {
+        // Profile exists, don't override existing role (might be admin)
+        debugPrint(
+          '✅ User profile already exists for: $email with role: ${existing['role']}',
+        );
+      }
     } catch (e) {
-      debugPrint('⚠️ Could not create user role (may already exist): $e');
+      debugPrint('⚠️ Could not create user profile (may already exist): $e');
       // Don't throw - this is a backup mechanism
     }
   }

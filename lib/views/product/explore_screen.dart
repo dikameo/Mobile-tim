@@ -138,26 +138,69 @@ class _ExploreScreenState extends State<ExploreScreen> {
       ),
       body: _visibleProducts.isEmpty
           ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.search_off,
-                    size: 80,
-                    color: theme.iconTheme.color?.withOpacity(0.3),
-                  ),
-                  const SizedBox(height: 12),
-                  Text('No products found', style: theme.textTheme.titleMedium),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _searchController.text.isEmpty
+                          ? Icons.inventory_2_outlined
+                          : Icons.search_off,
+                      size: 80,
+                      color: theme.iconTheme.color?.withOpacity(0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _searchController.text.isEmpty
+                          ? 'No products available'
+                          : 'No products found',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _searchController.text.isEmpty
+                          ? 'Products will appear here once available in the database.'
+                          : 'Try adjusting your search terms.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.textTheme.bodySmall?.color?.withOpacity(
+                          0.6,
+                        ),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (_searchController.text.isEmpty) ...[
+                      const SizedBox(height: 24),
+                      OutlinedButton.icon(
+                        onPressed: _loadProducts,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Refresh'),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             )
           : GridView.builder(
-              padding: ResponsiveHelper.getPadding(context, mobile: 16, tablet: 24, desktop: 32),
+              padding: ResponsiveHelper.getPadding(
+                context,
+                mobile: 16,
+                tablet: 24,
+                desktop: 32,
+              ),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: ResponsiveHelper.getGridCrossAxisCount(context),
-                childAspectRatio: ResponsiveHelper.isMobile(context) ? 0.65 : (ResponsiveHelper.isTablet(context) ? 0.7 : 0.75),
-                crossAxisSpacing: ResponsiveHelper.getSpacing(context, mobile: 12),
-                mainAxisSpacing: ResponsiveHelper.getSpacing(context, mobile: 12),
+                childAspectRatio: ResponsiveHelper.isMobile(context)
+                    ? 0.65
+                    : (ResponsiveHelper.isTablet(context) ? 0.7 : 0.75),
+                crossAxisSpacing: ResponsiveHelper.getSpacing(
+                  context,
+                  mobile: 12,
+                ),
+                mainAxisSpacing: ResponsiveHelper.getSpacing(
+                  context,
+                  mobile: 12,
+                ),
               ),
               itemCount: _visibleProducts.length,
               itemBuilder: (context, index) {

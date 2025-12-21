@@ -285,30 +285,73 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 320,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: featuredProducts.length,
-                itemBuilder: (context, index) {
-                  return ProductCard(
-                    product: featuredProducts[index],
-                    isHorizontal: true,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductDetailScreen(
-                            product: featuredProducts[index],
-                          ),
+            // Featured Roasters - Empty State atau List
+            if (featuredProducts.isEmpty)
+              Container(
+                height: 200,
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor.withOpacity(0.3),
+                  ),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 48,
+                        color: Theme.of(
+                          context,
+                        ).iconTheme.color?.withOpacity(0.3),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No products available yet',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.color?.withOpacity(0.6),
                         ),
-                      );
-                    },
-                  );
-                },
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: _loadProducts,
+                        icon: const Icon(Icons.refresh, size: 18),
+                        label: const Text('Refresh'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 320,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: featuredProducts.length,
+                  itemBuilder: (context, index) {
+                    return ProductCard(
+                      product: featuredProducts[index],
+                      isHorizontal: true,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailScreen(
+                              product: featuredProducts[index],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
             const SizedBox(height: 24),
             // Just For You
             Padding(
@@ -319,35 +362,86 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getSpacing(context, mobile: 16)),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: ResponsiveHelper.getGridCrossAxisCount(context),
-                  childAspectRatio: ResponsiveHelper.isMobile(context) ? 0.65 : (ResponsiveHelper.isTablet(context) ? 0.7 : 0.75),
-                  crossAxisSpacing: ResponsiveHelper.getSpacing(context, mobile: 12),
-                  mainAxisSpacing: ResponsiveHelper.getSpacing(context, mobile: 12),
+            // Just For You - Empty State atau Grid
+            if (_filteredProducts.isEmpty)
+              Container(
+                height: 200,
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor.withOpacity(0.3),
+                  ),
                 ),
-                itemCount: _filteredProducts.length,
-                itemBuilder: (context, index) {
-                  return ProductCard(
-                    product: _filteredProducts[index],
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductDetailScreen(
-                            product: _filteredProducts[index],
-                          ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.coffee_outlined,
+                        size: 48,
+                        color: Theme.of(
+                          context,
+                        ).iconTheme.color?.withOpacity(0.3),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _selectedCategory == 'All'
+                            ? 'No products in database'
+                            : 'No products in "$_selectedCategory"',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.color?.withOpacity(0.6),
                         ),
-                      );
-                    },
-                  );
-                },
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveHelper.getSpacing(context, mobile: 16),
+                ),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: ResponsiveHelper.getGridCrossAxisCount(
+                      context,
+                    ),
+                    childAspectRatio: ResponsiveHelper.isMobile(context)
+                        ? 0.65
+                        : (ResponsiveHelper.isTablet(context) ? 0.7 : 0.75),
+                    crossAxisSpacing: ResponsiveHelper.getSpacing(
+                      context,
+                      mobile: 12,
+                    ),
+                    mainAxisSpacing: ResponsiveHelper.getSpacing(
+                      context,
+                      mobile: 12,
+                    ),
+                  ),
+                  itemCount: _filteredProducts.length,
+                  itemBuilder: (context, index) {
+                    return ProductCard(
+                      product: _filteredProducts[index],
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailScreen(
+                              product: _filteredProducts[index],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
             const SizedBox(height: 80),
           ],
         ),

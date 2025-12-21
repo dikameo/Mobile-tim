@@ -68,19 +68,32 @@ class SupabaseService {
     }
   }
 
-  /// Get current user profile
+  /// Get current user profile (supports both Supabase native and Laravel schema)
   Future<Map<String, dynamic>?> getUserProfile() async {
     try {
       final user = _client.auth.currentUser;
       if (user == null) return null;
 
-      // Get user role from user_roles table (not profiles)
-      final response = await _client
-          .from('user_roles')
+      debugPrint('🔍 Getting profile for user: ${user.id}');
+
+      // Try profiles.id first (Supabase native schema)
+      var response = await _client
+          .from('profiles')
           .select()
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
+      // If not found, try profiles.user_id (Laravel schema)
+      if (response == null) {
+        debugPrint('🔍 Trying user_id column...');
+        response = await _client
+            .from('profiles')
+            .select()
+            .eq('user_id', user.id)
+            .maybeSingle();
+      }
+
+      debugPrint('✅ Profile response: $response');
       return response;
     } catch (e) {
       debugPrint('Error getting user profile: $e');

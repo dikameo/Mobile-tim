@@ -25,8 +25,12 @@ class ResponsiveHelper {
   }
 
   // Responsive padding
-  static EdgeInsets getPadding(BuildContext context,
-      {double mobile = 16.0, double? tablet, double? desktop}) {
+  static EdgeInsets getPadding(
+    BuildContext context, {
+    double mobile = 16.0,
+    double? tablet,
+    double? desktop,
+  }) {
     if (isDesktop(context)) {
       return EdgeInsets.all(desktop ?? mobile * 2);
     }
@@ -37,8 +41,12 @@ class ResponsiveHelper {
   }
 
   // Responsive font size
-  static double getFontSize(BuildContext context,
-      {double mobile = 14.0, double? tablet, double? desktop}) {
+  static double getFontSize(
+    BuildContext context, {
+    double mobile = 14.0,
+    double? tablet,
+    double? desktop,
+  }) {
     if (isDesktop(context)) return desktop ?? mobile * 1.2;
     if (isTablet(context)) return tablet ?? mobile * 1.1;
     return mobile;
@@ -52,24 +60,36 @@ class ResponsiveHelper {
   }
 
   // Responsive image height
-  static double getImageHeight(BuildContext context,
-      {double mobile = 160.0, double? tablet, double? desktop}) {
+  static double getImageHeight(
+    BuildContext context, {
+    double mobile = 160.0,
+    double? tablet,
+    double? desktop,
+  }) {
     if (isDesktop(context)) return desktop ?? mobile * 1.5;
     if (isTablet(context)) return tablet ?? mobile * 1.25;
     return mobile;
   }
 
   // Responsive card width for horizontal lists
-  static double getCardWidth(BuildContext context,
-      {double mobile = 160.0, double? tablet, double? desktop}) {
+  static double getCardWidth(
+    BuildContext context, {
+    double mobile = 160.0,
+    double? tablet,
+    double? desktop,
+  }) {
     if (isDesktop(context)) return desktop ?? mobile * 1.5;
     if (isTablet(context)) return tablet ?? mobile * 1.25;
     return mobile;
   }
 
   // Responsive icon size
-  static double getIconSize(BuildContext context,
-      {double mobile = 24.0, double? tablet, double? desktop}) {
+  static double getIconSize(
+    BuildContext context, {
+    double mobile = 24.0,
+    double? tablet,
+    double? desktop,
+  }) {
     if (isDesktop(context)) return desktop ?? mobile * 1.3;
     if (isTablet(context)) return tablet ?? mobile * 1.15;
     return mobile;
@@ -83,8 +103,12 @@ class ResponsiveHelper {
   }
 
   // Responsive button height
-  static double getButtonHeight(BuildContext context,
-      {double mobile = 48.0, double? tablet, double? desktop}) {
+  static double getButtonHeight(
+    BuildContext context, {
+    double mobile = 48.0,
+    double? tablet,
+    double? desktop,
+  }) {
     if (isDesktop(context)) return desktop ?? mobile * 1.2;
     if (isTablet(context)) return tablet ?? mobile * 1.1;
     return mobile;
@@ -111,35 +135,62 @@ extension RoasterAppResponsive on BuildContext {
       ResponsiveHelper.getSpacing(this, mobile: mobile);
 
   EdgeInsets padding({double mobile = 16.0, double? tablet, double? desktop}) =>
-      ResponsiveHelper.getPadding(this,
-          mobile: mobile, tablet: tablet, desktop: desktop);
+      ResponsiveHelper.getPadding(
+        this,
+        mobile: mobile,
+        tablet: tablet,
+        desktop: desktop,
+      );
 
-  double fontSize(
-          {double mobile = 14.0, double? tablet, double? desktop}) =>
-      ResponsiveHelper.getFontSize(this,
-          mobile: mobile, tablet: tablet, desktop: desktop);
+  double fontSize({double mobile = 14.0, double? tablet, double? desktop}) =>
+      ResponsiveHelper.getFontSize(
+        this,
+        mobile: mobile,
+        tablet: tablet,
+        desktop: desktop,
+      );
 
   int get gridCrossAxisCount => ResponsiveHelper.getGridCrossAxisCount(this);
 
-  double imageHeight(
-          {double mobile = 160.0, double? tablet, double? desktop}) =>
-      ResponsiveHelper.getImageHeight(this,
-          mobile: mobile, tablet: tablet, desktop: desktop);
+  double imageHeight({
+    double mobile = 160.0,
+    double? tablet,
+    double? desktop,
+  }) => ResponsiveHelper.getImageHeight(
+    this,
+    mobile: mobile,
+    tablet: tablet,
+    desktop: desktop,
+  );
 
   double cardWidth({double mobile = 160.0, double? tablet, double? desktop}) =>
-      ResponsiveHelper.getCardWidth(this,
-          mobile: mobile, tablet: tablet, desktop: desktop);
+      ResponsiveHelper.getCardWidth(
+        this,
+        mobile: mobile,
+        tablet: tablet,
+        desktop: desktop,
+      );
 
   double iconSize({double mobile = 24.0, double? tablet, double? desktop}) =>
-      ResponsiveHelper.getIconSize(this,
-          mobile: mobile, tablet: tablet, desktop: desktop);
+      ResponsiveHelper.getIconSize(
+        this,
+        mobile: mobile,
+        tablet: tablet,
+        desktop: desktop,
+      );
 
   double get maxContentWidth => ResponsiveHelper.getMaxContentWidth(this);
 
-  double buttonHeight(
-          {double mobile = 48.0, double? tablet, double? desktop}) =>
-      ResponsiveHelper.getButtonHeight(this,
-          mobile: mobile, tablet: tablet, desktop: desktop);
+  double buttonHeight({
+    double mobile = 48.0,
+    double? tablet,
+    double? desktop,
+  }) => ResponsiveHelper.getButtonHeight(
+    this,
+    mobile: mobile,
+    tablet: tablet,
+    desktop: desktop,
+  );
 
   double get cardElevation => ResponsiveHelper.getCardElevation(this);
 }

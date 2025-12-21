@@ -62,15 +62,19 @@ class SyncService {
       // Get current product IDs from Hive
       final currentHiveProducts = _hiveService.getAllProducts();
       final currentHiveIds = currentHiveProducts.map((p) => p.id).toSet();
-      
+
       // Get IDs from Supabase
-      final supabaseIds = supabaseProducts.map((p) => p['id'] as String).toSet();
-      
+      final supabaseIds = supabaseProducts
+          .map((p) => p['id'] as String)
+          .toSet();
+
       // Find deleted products (in Hive but not in Supabase)
       final deletedIds = currentHiveIds.difference(supabaseIds);
-      
+
       if (deletedIds.isNotEmpty) {
-        debugPrint('🗑️ Deleting ${deletedIds.length} products that no longer exist in database');
+        debugPrint(
+          '🗑️ Deleting ${deletedIds.length} products that no longer exist in database',
+        );
         for (var id in deletedIds) {
           await _hiveService.deleteProduct(id);
         }
@@ -111,7 +115,9 @@ class SyncService {
       await _hiveService.saveLastSyncTime(_lastSyncTime!);
       await _hiveService.markInitialSyncDone();
 
-      debugPrint('✅ Full sync completed: ${hiveProducts.length} products synced, ${deletedIds.length} deleted');
+      debugPrint(
+        '✅ Full sync completed: ${hiveProducts.length} products synced, ${deletedIds.length} deleted',
+      );
       return true;
     } catch (e) {
       debugPrint('❌ Error during full sync: $e');
@@ -151,15 +157,19 @@ class SyncService {
       // Untuk incremental sync, kita juga perlu cek deleted products
       // Cara sederhana: ambil semua IDs dari server dan bandingkan
       final allSupabaseProducts = await _supabaseService.getProducts();
-      final supabaseIds = allSupabaseProducts.map((p) => p['id'] as String).toSet();
-      
+      final supabaseIds = allSupabaseProducts
+          .map((p) => p['id'] as String)
+          .toSet();
+
       final currentHiveProducts = _hiveService.getAllProducts();
       final currentHiveIds = currentHiveProducts.map((p) => p.id).toSet();
-      
+
       final deletedIds = currentHiveIds.difference(supabaseIds);
-      
+
       if (deletedIds.isNotEmpty) {
-        debugPrint('🗑️ Deleting ${deletedIds.length} products removed from database');
+        debugPrint(
+          '🗑️ Deleting ${deletedIds.length} products removed from database',
+        );
         for (var id in deletedIds) {
           await _hiveService.deleteProduct(id);
         }

@@ -44,7 +44,7 @@ class CartController extends GetxController {
     try {
       final authController = Get.find<AuthController>();
       _currentUserId = authController.currentUser?.id;
-      
+
       if (_currentUserId != null) {
         await _loadCartFromStorage();
       }
@@ -56,11 +56,11 @@ class CartController extends GetxController {
   /// Load cart from SharedPreferences untuk user saat ini
   Future<void> _loadCartFromStorage() async {
     if (_currentUserId == null) return;
-    
+
     try {
       final cartKey = 'cart_$_currentUserId';
       final cartData = await _prefs.getStringList(cartKey);
-      
+
       if (cartData != null && cartData.isNotEmpty) {
         _items.clear();
         for (var itemJson in cartData) {
@@ -71,7 +71,9 @@ class CartController extends GetxController {
             print('Error parsing cart item: $e');
           }
         }
-        print('📦 Loaded ${_items.length} items from cart for user $_currentUserId');
+        print(
+          '📦 Loaded ${_items.length} items from cart for user $_currentUserId',
+        );
       }
     } catch (e) {
       print('Error loading cart from storage: $e');
@@ -81,7 +83,7 @@ class CartController extends GetxController {
   /// Save cart to SharedPreferences
   Future<void> _saveCartToStorage() async {
     if (_currentUserId == null) return;
-    
+
     try {
       final cartKey = 'cart_$_currentUserId';
       final cartData = _items.map((item) => item.toJson()).toList();

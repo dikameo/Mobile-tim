@@ -49,7 +49,7 @@ class SupabaseConfig {
     return client.auth.currentUser;
   }
 
-  /// Get current user role (FIXED: avoid infinite recursion)
+  /// Get current user role (supports both Supabase native and Laravel schema)
   static Future<String?> getCurrentUserRole() async {
     final user = currentUser;
     if (user == null) {
@@ -58,25 +58,58 @@ class SupabaseConfig {
     }
 
     try {
-      print('🔍 Fetching role for user: ${user.id}');
+      print('🔍 ========== GET USER ROLE ==========');
+      print('🔍 User ID: ${user.id}');
+      print('🔍 User Email: ${user.email}');
 
-      // Use direct query with auth.uid() match to avoid recursion
-      final response = await client
+      // Try profiles.id first (Supabase native schema)
+      print('🔍 Query 1: SELECT * FROM profiles WHERE id = ${user.id}');
+      var response = await client
           .from('profiles')
-          .select('role')
+          .select('*') // Select all to debug
           .eq('id', user.id)
-          .maybeSingle(); // Use maybeSingle instead of single to avoid error if not found
+          .maybeSingle();
 
-      print('✅ Role query response: $response');
+      print('🔍 Query 1 response: $response');
+
+      // If not found, try profiles.user_id (Laravel schema)
+      if (response == null) {
+        print('🔍 Query 2: SELECT * FROM profiles WHERE user_id = ${user.id}');
+        response = await client
+            .from('profiles')
+            .select('*') // Select all to debug
+            .eq('user_id', user.id)
+            .maybeSingle();
+        print('🔍 Query 2 response: $response');
+      }
+
+      // If still not found, try by email
+      if (response == null) {
+        print('🔍 Query 3: SELECT * FROM profiles WHERE email = ${user.email}');
+        response = await client
+            .from('profiles')
+            .select('*')
+            .eq('email', user.email!)
+            .maybeSingle();
+        print('🔍 Query 3 response: $response');
+      }
+
+      print('🔍 Final response: $response');
+      print('🔍 ========== END GET USER ROLE ==========');
 
       if (response == null) {
-        print('⚠️ No profile found for user');
+        print('⚠️ No profile found for user in profiles table');
         return 'customer'; // Default role
       }
 
-      return response['role'] as String? ?? 'customer';
-    } catch (e) {
+      final role = response['role'] as String?;
+      print('🔍 Role from DB: "$role"');
+
+      // Handle case-insensitive comparison
+      return role?.toLowerCase() ?? 'customer';
+    } catch (e, stack) {
       print('❌ Error fetching role: $e');
+      print('❌ Stack: $stack');
       return 'customer'; // Default to customer on error
     }
   }
@@ -85,8 +118,9 @@ class SupabaseConfig {
   static Future<bool> isAdmin() async {
     try {
       final role = await getCurrentUserRole();
-      print('🔍 User role: $role');
-      final isAdminUser = role == 'admin';
+      print('🔍 User role for isAdmin check: "$role"');
+      // Compare lowercase to handle 'Admin', 'ADMIN', 'admin', etc.
+      final isAdminUser = role?.toLowerCase() == 'admin';
       print('🔍 Is admin: $isAdminUser');
       return isAdminUser;
     } catch (e) {

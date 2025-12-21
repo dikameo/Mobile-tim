@@ -114,7 +114,12 @@ class _AdminProductListScreenState extends State<AdminProductListScreen> {
               return RefreshIndicator(
                 onRefresh: () => controller.loadProducts(refresh: true),
                 child: ListView.builder(
-                  padding: ResponsiveHelper.getPadding(context, mobile: 16, tablet: 24, desktop: 32),
+                  padding: ResponsiveHelper.getPadding(
+                    context,
+                    mobile: 16,
+                    tablet: 24,
+                    desktop: 32,
+                  ),
                   itemCount: controller.products.length,
                   itemBuilder: (context, index) {
                     final product = controller.products[index];
@@ -159,10 +164,14 @@ class _AdminProductListScreenState extends State<AdminProductListScreen> {
     AdminProductManagementController controller,
     BuildContext context,
   ) {
-    final imageSize = ResponsiveHelper.isMobile(context) ? 80.0 : (ResponsiveHelper.isTablet(context) ? 100.0 : 120.0);
-    
+    final imageSize = ResponsiveHelper.isMobile(context)
+        ? 80.0
+        : (ResponsiveHelper.isTablet(context) ? 100.0 : 120.0);
+
     return AdminCard(
-      margin: EdgeInsets.only(bottom: ResponsiveHelper.getSpacing(context, mobile: 12)),
+      margin: EdgeInsets.only(
+        bottom: ResponsiveHelper.getSpacing(context, mobile: 12),
+      ),
       onTap: () =>
           Get.to(() => AdminProductDetailScreen(productId: product.id)),
       child: Row(
@@ -193,38 +202,61 @@ class _AdminProductListScreenState extends State<AdminProductListScreen> {
                 Text(
                   product.name,
                   style: TextStyle(
-                    fontSize: ResponsiveHelper.getFontSize(context, mobile: 16, tablet: 18, desktop: 20),
+                    fontSize: ResponsiveHelper.getFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
                     fontWeight: FontWeight.bold,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: ResponsiveHelper.getSpacing(context, mobile: 8)),
+                SizedBox(
+                  height: ResponsiveHelper.getSpacing(context, mobile: 8),
+                ),
                 AdminInfoRow(
                   icon: Icons.category_outlined,
                   label: 'Category',
                   value: product.category,
                 ),
-                SizedBox(height: ResponsiveHelper.getSpacing(context, mobile: 4)),
+                SizedBox(
+                  height: ResponsiveHelper.getSpacing(context, mobile: 4),
+                ),
                 Row(
                   children: [
                     Icon(
                       Icons.attach_money,
-                      size: ResponsiveHelper.getIconSize(context, mobile: 16, tablet: 18, desktop: 20),
+                      size: ResponsiveHelper.getIconSize(
+                        context,
+                        mobile: 16,
+                        tablet: 18,
+                        desktop: 20,
+                      ),
                       color: AppTheme.primaryCharcoal,
                     ),
-                    SizedBox(width: ResponsiveHelper.getSpacing(context, mobile: 4)),
+                    SizedBox(
+                      width: ResponsiveHelper.getSpacing(context, mobile: 4),
+                    ),
                     Text(
                       'Rp ${product.price.toStringAsFixed(0)}',
                       style: TextStyle(
-                        fontSize: ResponsiveHelper.getFontSize(context, mobile: 16, tablet: 18, desktop: 20),
+                        fontSize: ResponsiveHelper.getFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryCharcoal,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: ResponsiveHelper.getSpacing(context, mobile: 8)),
+                SizedBox(
+                  height: ResponsiveHelper.getSpacing(context, mobile: 8),
+                ),
                 AdminStatusBadge(
                   label: product.isActive ? 'Active' : 'Inactive',
                   color: product.isActive ? Colors.green : Colors.red,

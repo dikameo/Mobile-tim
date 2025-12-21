@@ -46,8 +46,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final role = await SupabaseConfig.getCurrentUserRole();
       print('🔍 User role from DB: "$role"');
 
-      // IMPORTANT: Check if role is 'admin' (case sensitive!)
-      final isAdminRole = role?.toLowerCase() == 'admin';
+      // Role already returned as lowercase from getCurrentUserRole
+      final isAdminRole = role == 'admin';
       print('🔍 Is admin role: $isAdminRole (role="$role")');
 
       setState(() {
