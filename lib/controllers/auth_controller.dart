@@ -265,4 +265,31 @@ class AuthController extends GetxController {
       // Don't throw - this is a backup mechanism
     }
   }
+  Future<void> refreshProfileFromSupabase() async {
+    try {
+      final supabaseUser = SupabaseConfig.currentUser;
+      if (supabaseUser == null) return;
+
+      final profile = await SupabaseConfig.client
+          .from('profiles')
+          .select('username, photo_url')
+          .eq('id', supabaseUser.id)
+          .single();
+
+      _currentUser.value = _currentUser.value?.copyWith(
+        name: profile['username'],
+        photoUrl: profile['photo_url'],
+      );
+
+      if (_currentUser.value != null) {
+        _saveUserToStorage(_currentUser.value!);
+      }
+
+      update();
+    } catch (e) {
+      debugPrint('❌ Failed to refresh profile: $e');
+    }
+  }
+
+
 }

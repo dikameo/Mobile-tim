@@ -5,6 +5,10 @@ import '../../controllers/auth_controller.dart';
 import '../../controllers/theme_controller.dart';
 import '../../config/supabase_config.dart';
 import '../../services/fcm_service.dart';
+import '../profile/address_screen.dart';
+import '../../bindings/addressbindings.dart';
+import '../profile/edit_profile_screen.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -89,12 +93,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: AppTheme.secondaryOrange,
-                    child: Icon(
-                      Icons.person,
-                      color: theme.colorScheme.onPrimary,
-                    ),
+                    backgroundImage: auth.currentUser?.photoUrl != null
+                        ? NetworkImage(auth.currentUser!.photoUrl!)
+                        : null,
+                    child: auth.currentUser?.photoUrl == null
+                        ? Text(auth.currentUser?.name[0].toUpperCase() ?? '?')
+                        : null,
                   ),
+
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -137,16 +143,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 8),
             _MenuTile(
+              icon: Icons.edit,
+              title: 'Edit Profile',
+              backgroundColor: theme.cardColor,
+              onTap: () async {
+                final result = await Get.to(() => const EditProfilePage());
+                if (result == true) {
+                  await auth.refreshProfileFromSupabase(); // 🔥 AUTO REFRESH
+                  setState(() {});
+                }
+              },
+            ),
+            _MenuTile(
               icon: Icons.location_on_outlined,
               title: 'Alamat Saya',
               backgroundColor: theme.cardColor,
               onTap: () {
-                NotificationService().showMaintenanceNotification(
-                  title: '🔧 Fitur dalam Pengembangan',
-                  body:
-                      'Alamat Saya sedang dalam maintenance. Mohon maaf atas ketidaknyamanannya.',
-                  sound: 'alamat',
-                );
+                Get.to(() => AddressPage(), binding: AddressBinding());
               },
             ),
             _MenuTile(
@@ -189,6 +202,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
             const SizedBox(height: 8),
+
+            
+
 
             // Admin Panel Section
             if (isCheckingRole)
